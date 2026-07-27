@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "880044079301",
+    "project_id": "noi-vong-tay",
+    "storage_bucket": "noi-vong-tay.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:880044079301:android:6bd4b5be71d4bf348418ac",
+        "android_client_info": {
+          "package_name": "com.noivongtay.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_-lkQDd6LIozsyPdFJQUk5vVFOvM-Rj8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,76 @@
+{
+  "expo": {
+    "name": "Nối Vòng Tay",
+    "slug": "noi-vong-tay",
+    "owner": "minhquan117",
+    "version": "1.0.8",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "noivongtay",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "icon": "./assets/images/icon.png",
+      "bundleIdentifier": "com.noivongtay.app",
+      "buildNumber": "9"
+    },
+    "android": {
+      "package": "com.noivongtay.app",
+      "versionCode": 9,
+      "googleServicesFile": "./google-services.json",
+      "softwareKeyboardLayoutMode": "resize",
+      "adaptiveIcon": {
+        "backgroundColor": "#F3FBF6",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F3FBF6"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Cho phép Nối Vòng Tay chọn ảnh để đăng hồ sơ cần hỗ trợ.",
+          "cameraPermission": "Cho phép Nối Vòng Tay chụp ảnh cho hồ sơ cần hỗ trợ.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F3FBF6",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 128
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#2F9B62",
+          "defaultChannel": "noi-vong-tay"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "88828db3-f22b-427b-aed7-dd78397a0456"
+      }
+    }
+  }
+}

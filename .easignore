@@ -1,0 +1,17 @@
+node_modules/
+.expo/
+dist/
+web-build/
+.git/
+*.log
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+service-account*.json
+*-firebase-adminsdk-*.json
+functions/node_modules/
+functions/lib/
+/ios
+/android
