@@ -8,6 +8,9 @@ Every input rendered on mobile web must keep a computed font size of at least 16
 Do not remove the global iOS/iPadOS WebKit focus-zoom guard in `src/global.css`,
 and preserve it whenever adding or restyling TextInput, input, textarea, select,
 or contenteditable controls.
+Do not call `scrollIntoView` during the initial mobile-web input focus event or
+its first animation frame. Wait for `visualViewport` to resize as the keyboard
+opens, then scroll only when the focused input is actually obscured.
 
 # MOBILE WEB REFLOW INVARIANT
 
