@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   heart: { color: '#E84C5B', fontSize: 21, transform: [{ rotate: '4deg' }] },
   heartCompact: { fontSize: 17 },
   copy: { flexShrink: 1, minWidth: 0 },
-  copyCompact: { width: 96, maxWidth: 96 },
+  copyCompact: { width: 125, maxWidth: 125 },
   name: { color: Colors.ink, fontSize: 18, fontWeight: '800', letterSpacing: -0.3 },
   nameCompact: { fontSize: 14, letterSpacing: -0.25 },
   tagline: { color: Colors.muted, fontSize: 10, marginTop: 1 },
