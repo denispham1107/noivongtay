@@ -92,7 +92,7 @@ export default function NotificationsScreen() {
       <PublicHeader />
       <KeyboardAwareScrollView contentContainerStyle={styles.page}>
         <View style={styles.headingRow}>
-          <View>
+          <View style={styles.headingCopy}>
             <Text style={styles.eyebrow}>CẬP NHẬT TRONG ỨNG DỤNG</Text>
             <Text style={styles.title}>Thông báo</Text>
             <Text style={styles.subtitle}>
@@ -175,6 +175,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.cream },
   page: { width: '100%', maxWidth: 850, alignSelf: 'center', padding: 20, paddingTop: 38, paddingBottom: 60 },
   headingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 14 },
+  headingCopy: { flex: 1, minWidth: 0, maxWidth: '100%' },
   eyebrow: { color: Colors.primaryDark, fontSize: 10, fontWeight: '900', letterSpacing: 1.2 },
   title: { color: Colors.ink, fontSize: 34, fontWeight: '900', marginTop: 5 },
   subtitle: { color: Colors.muted, fontSize: 12, marginTop: 5 },
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
   loginButton: { backgroundColor: Colors.primary, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 12, marginTop: 18 },
   loginButtonText: { color: '#fff', fontSize: 11, fontWeight: '900' },
   pushCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, backgroundColor: Colors.primarySoft, borderWidth: 1, borderColor: Colors.line, borderRadius: 16, padding: 16, marginTop: 20 },
-  pushCopy: { flex: 1, minWidth: 220 },
+  pushCopy: { flex: 1, flexBasis: 220, minWidth: 0 },
   pushTitle: { color: Colors.ink, fontSize: 12, fontWeight: '900' },
   pushText: { color: Colors.muted, fontSize: 10, lineHeight: 16, marginTop: 4 },
   enablePushButton: { backgroundColor: Colors.primary, borderRadius: 11, paddingHorizontal: 16, paddingVertical: 11 },

@@ -81,7 +81,7 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.sectionHeader}>
-            <View>
+            <View style={styles.sectionHeaderCopy}>
               <Text style={styles.sectionEyebrow}>ĐANG CẦN SỰ CHUNG TAY</Text>
               <Text style={styles.sectionTitle}>Những câu chuyện cần được lắng nghe</Text>
             </View>
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   heroOuter: { backgroundColor: '#EAF7EF', borderBottomWidth: 1, borderBottomColor: '#D6ECDE' },
   hero: { maxWidth: 1180, width: '100%', alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 55 },
   heroDesktop: { flexDirection: 'row', minHeight: 500, alignItems: 'center', gap: 70, paddingVertical: 70 },
-  heroCopy: { flex: 1, maxWidth: 650 },
+  heroCopy: { flex: 1, width: '100%', maxWidth: 650, minWidth: 0 },
   eyebrow: { alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.72)', borderRadius: 20, paddingHorizontal: 13, paddingVertical: 8, marginBottom: 18 },
   eyebrowText: { color: Colors.coralDark, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
   heroTitle: { color: Colors.ink, fontSize: 40, lineHeight: 48, fontWeight: '900', letterSpacing: -1.7 },
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   search: { marginTop: 28, backgroundColor: Colors.paper, borderRadius: 16, padding: 7, paddingLeft: 16, flexDirection: 'row', alignItems: 'center', gap: 10, shadowColor: '#16472C', shadowOpacity: 0.1, shadowRadius: 18, elevation: 2 },
   searchMobile: { flexWrap: 'wrap' },
   searchIcon: { fontSize: 23, color: Colors.muted },
-  searchInput: { flex: 1, minWidth: 180, color: Colors.ink, fontSize: 14, paddingVertical: 10, outlineStyle: 'none' } as any,
+  searchInput: { flex: 1, flexBasis: 180, minWidth: 0, color: Colors.ink, fontSize: 14, paddingVertical: 10, outlineStyle: 'none' } as any,
   searchButton: { backgroundColor: Colors.coral, borderRadius: 12, paddingHorizontal: 22, paddingVertical: 14 },
   searchButtonText: { color: '#fff', fontSize: 13, fontWeight: '800' },
   trustRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 18, marginTop: 16 },
@@ -150,7 +150,8 @@ const styles = StyleSheet.create({
   categoryPillActive: { backgroundColor: Colors.coral, borderColor: Colors.coral },
   categoryText: { color: Colors.muted, fontSize: 12, fontWeight: '700' },
   categoryTextActive: { color: '#fff' },
-  sectionHeader: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 23 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 23 },
+  sectionHeaderCopy: { flex: 1, minWidth: 0, maxWidth: '100%' },
   sectionEyebrow: { color: Colors.coralDark, fontSize: 11, fontWeight: '900', letterSpacing: 1.2, marginBottom: 8 },
   sectionTitle: { color: Colors.ink, fontSize: 28, lineHeight: 35, fontWeight: '900', letterSpacing: -1 },
   viewAll: { color: Colors.coralDark, fontSize: 13, fontWeight: '800' },
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
   outlineText: { color: Colors.coralDark, fontSize: 13, fontWeight: '800' },
   howSection: { marginTop: 70, backgroundColor: '#EAF7EF', borderRadius: 26, padding: 26, gap: 30, borderWidth: 1, borderColor: '#D6ECDE', overflow: 'hidden' },
   howDesktop: { flexDirection: 'row', alignItems: 'center', padding: 48, gap: 70 },
-  howIntro: { flex: 0.8 },
+  howIntro: { flex: 0.8, minWidth: 0, width: '100%' },
   howTitle: { color: Colors.ink, fontSize: 30, lineHeight: 38, fontWeight: '900', letterSpacing: -1 },
   howBody: { color: Colors.muted, fontSize: 14, lineHeight: 22, marginTop: 14 },
   steps: { width: '100%', flex: 1, minWidth: 0, gap: 19 },
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
   stepText: { width: '100%', flexShrink: 1, color: Colors.muted, fontSize: 12, lineHeight: 18, marginTop: 3 },
   footer: { borderTopWidth: 1, borderTopColor: Colors.line, paddingVertical: 28, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 },
   footerHeart: { color: Colors.coral },
-  footerText: { color: Colors.muted, fontSize: 12 },
+  footerText: { flexShrink: 1, color: Colors.muted, fontSize: 12, textAlign: 'center' },
   dataMessage: { color: Colors.muted, fontSize: 13, paddingVertical: 24 },
   dataError: { color: Colors.red, backgroundColor: Colors.redSoft, borderRadius: 12, padding: 14, fontSize: 12 },
 });

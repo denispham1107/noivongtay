@@ -142,6 +142,7 @@ function LoginScreen({ currentUser, accessError }: { currentUser: User | null; a
 function AdminDashboard({ user, role }: { user: User; role: AdminRole }) {
   const { width } = useWindowDimensions();
   const desktop = width >= 900;
+  const compact = width < 480;
   const [section, setSection] = useState<Section>('Tổng quan');
   const [showForm, setShowForm] = useState(false);
   const [cases, setCases] = useState<AdminCase[]>([]);
@@ -177,7 +178,7 @@ function AdminDashboard({ user, role }: { user: User; role: AdminRole }) {
   return <SafeAreaView style={styles.safe} edges={['top']}><View style={styles.app}>
     {desktop && <Sidebar section={section} setSection={setSection} count={cases.length} role={role} />}
     <View style={styles.main}>
-      <View style={styles.topbar}>
+      <View style={[styles.topbar, compact && styles.topbarCompact]}>
         {!desktop && <BrandMark compact />}
         <View style={styles.topCopy}><Text style={styles.topTitle}>{section}</Text><Text style={styles.breadcrumb}>Quản trị / {section}</Text></View>
         <Pressable style={styles.siteButton} onPress={() => router.push('/')}><Text style={styles.siteButtonText}>↗ Trang công khai</Text></Pressable>
@@ -187,8 +188,8 @@ function AdminDashboard({ user, role }: { user: User; role: AdminRole }) {
           await signOut(auth);
         }}><Text style={styles.signOutText}>Đăng xuất</Text></Pressable>
       </View>
-      {!desktop && <View style={styles.mobileNav}>{adminSections(role).map((item) => <Pressable key={item} onPress={() => setSection(item)} style={[styles.mobilePill, section === item && styles.mobilePillActive]}><Text style={[styles.mobilePillText, section === item && styles.mobilePillTextActive]}>{item}</Text></Pressable>)}</View>}
-      <KeyboardAwareScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      {!desktop && <View style={[styles.mobileNav, compact && styles.mobileNavCompact]}>{adminSections(role).map((item) => <Pressable key={item} onPress={() => setSection(item)} style={[styles.mobilePill, compact && styles.mobilePillCompact, section === item && styles.mobilePillActive]}><Text style={[styles.mobilePillText, section === item && styles.mobilePillTextActive]}>{item}</Text></Pressable>)}</View>}
+      <KeyboardAwareScrollView contentContainerStyle={[styles.content, compact && styles.contentCompact]} keyboardShouldPersistTaps="handled">
         {section === 'Tổng quan' ? <Overview total={cases.length} published={published} drafts={drafts} onCreate={openCreate} /> : section === 'Người dùng' ? <AdminUserManager /> : <CaseManager cases={cases} categories={categoryOptions} priorities={priorityOptions} loading={loadingCases} error={caseError} showForm={showForm} setShowForm={setShowForm} refresh={refresh} canManageMoney={role === 'super_admin' || role === 'admin'} />}
       </KeyboardAwareScrollView>
     </View>
@@ -631,8 +632,9 @@ const styles = StyleSheet.create<any>({
   sidebarBottom: { marginTop: 'auto', backgroundColor: Colors.yellowSoft, borderRadius: 14, padding: 15 },
   helpTitle: { color: Colors.ink, fontSize: 12, fontWeight: '800' },
   helpText: { color: Colors.muted, fontSize: 10, lineHeight: 15, marginTop: 5 },
-  main: { flex: 1 },
+  main: { flex: 1, minWidth: 0 },
   topbar: { minHeight: 76, backgroundColor: Colors.paper, borderBottomWidth: 1, borderBottomColor: Colors.line, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
+  topbarCompact: { paddingHorizontal: 10, paddingVertical: 9, gap: 8 },
   topCopy: { flex: 1, minWidth: 120 },
   topTitle: { color: Colors.ink, fontSize: 17, fontWeight: '900' },
   breadcrumb: { color: Colors.muted, fontSize: 9, marginTop: 2 },
@@ -644,11 +646,14 @@ const styles = StyleSheet.create<any>({
   signOutButton: { backgroundColor: Colors.redSoft, borderRadius: 9, paddingHorizontal: 10, paddingVertical: 8 },
   signOutText: { color: Colors.red, fontSize: 9, fontWeight: '800' },
   mobileNav: { paddingHorizontal: 18, paddingVertical: 11, gap: 8, backgroundColor: Colors.paper, flexDirection: 'row' },
+  mobileNavCompact: { paddingHorizontal: 10, flexWrap: 'wrap' },
   mobilePill: { flex: 1, alignItems: 'center', paddingHorizontal: 10, paddingVertical: 8, borderRadius: 18, borderWidth: 1, borderColor: Colors.line },
+  mobilePillCompact: { flexBasis: 82, flexGrow: 1, minWidth: 0 },
   mobilePillActive: { backgroundColor: Colors.primary },
   mobilePillText: { color: Colors.muted, fontSize: 11, fontWeight: '700' },
   mobilePillTextActive: { color: '#fff' },
   content: { width: '100%', maxWidth: 1150, alignSelf: 'center', padding: 25, paddingBottom: 80 },
+  contentCompact: { paddingHorizontal: 12, paddingTop: 18 },
   welcome: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 24 },
   welcomeTitle: { color: Colors.ink, fontSize: 25, fontWeight: '900', letterSpacing: -0.7 },
   welcomeText: { color: Colors.muted, fontSize: 12, marginTop: 6 },
@@ -657,21 +662,21 @@ const styles = StyleSheet.create<any>({
   primaryButtonText: { color: '#fff', fontSize: 12, fontWeight: '900' },
   disabled: { opacity: 0.5 },
   stats: { flexDirection: 'row', flexWrap: 'wrap', gap: 14 },
-  stat: { flex: 1, minWidth: 190, backgroundColor: Colors.paper, borderWidth: 1, borderColor: Colors.line, borderRadius: 16, padding: 18, ...Shadows.card },
+  stat: { flexGrow: 1, flexShrink: 1, flexBasis: 190, minWidth: 0, backgroundColor: Colors.paper, borderWidth: 1, borderColor: Colors.line, borderRadius: 16, padding: 18, ...Shadows.card },
   statIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
   statValue: { color: Colors.ink, fontSize: 26, fontWeight: '900' },
   statLabel: { color: Colors.muted, fontSize: 11, marginTop: 2 },
   guidePanel: { backgroundColor: Colors.paper, borderWidth: 1, borderColor: Colors.line, borderRadius: 18, padding: 20, marginTop: 18 },
   guideRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 18, marginTop: 18 },
-  guide: { flex: 1, minWidth: 230, flexDirection: 'row', gap: 12 },
+  guide: { flexGrow: 1, flexShrink: 1, flexBasis: 230, minWidth: 0, flexDirection: 'row', gap: 12 },
   guideNumber: { width: 34, height: 34, borderRadius: 18, textAlign: 'center', textAlignVertical: 'center', backgroundColor: Colors.primarySoft, color: Colors.primaryDark, fontWeight: '900' },
-  guideCopy: { flex: 1 },
+  guideCopy: { flex: 1, minWidth: 0 },
   guideTitle: { color: Colors.ink, fontSize: 12, fontWeight: '900' },
   guideText: { color: Colors.muted, fontSize: 10, lineHeight: 16, marginTop: 3 },
   panelTitle: { color: Colors.ink, fontSize: 15, fontWeight: '900' },
   panelSubtitle: { color: Colors.muted, fontSize: 10, marginTop: 4 },
   tablePanel: { backgroundColor: Colors.paper, borderWidth: 1, borderColor: Colors.line, borderRadius: 16, overflow: 'hidden' },
-  tableHeader: { padding: 16, borderBottomWidth: 1, borderBottomColor: Colors.line, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  tableHeader: { padding: 16, borderBottomWidth: 1, borderBottomColor: Colors.line, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 },
   refreshText: { color: Colors.primaryDark, fontSize: 10, fontWeight: '800' },
   listLoader: { margin: 35 },
   emptyText: { color: Colors.muted, textAlign: 'center', padding: 35 },
@@ -679,12 +684,12 @@ const styles = StyleSheet.create<any>({
   caseRowSelected: { backgroundColor: Colors.primarySoft },
   caseRowPressed: { opacity: 0.72 },
   caseThumb: { width: 48, height: 42, borderRadius: 9, backgroundColor: Colors.primarySoft },
-  caseName: { flex: 1, minWidth: 170 },
+  caseName: { flexGrow: 1, flexShrink: 1, flexBasis: 170, minWidth: 0 },
   rowTitle: { color: Colors.ink, fontSize: 12, fontWeight: '900' },
   rowSub: { color: Colors.muted, fontSize: 9, marginTop: 3 },
   status: { borderRadius: 12, paddingHorizontal: 9, paddingVertical: 6 },
   statusText: { fontSize: 8, fontWeight: '900' },
-  rowDate: { color: Colors.muted, fontSize: 9, minWidth: 80 },
+  rowDate: { flexShrink: 1, color: Colors.muted, fontSize: 9 },
   rowAction: { color: Colors.primaryDark, fontSize: 9, fontWeight: '900' },
   formCard: { backgroundColor: Colors.paper, borderWidth: 1, borderColor: Colors.line, borderRadius: 18, padding: 22, marginBottom: 18, ...Shadows.card },
   formHeader: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 10, marginBottom: 18 },
@@ -693,7 +698,7 @@ const styles = StyleSheet.create<any>({
   cancelButton: { borderWidth: 1, borderColor: Colors.line, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, backgroundColor: Colors.paper },
   cancelButtonText: { color: Colors.muted, fontSize: 9, fontWeight: '800' },
   formGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  field: { flex: 1, minWidth: 230, marginBottom: 15 },
+  field: { flexGrow: 1, flexShrink: 1, flexBasis: 230, minWidth: 0, width: '100%', marginBottom: 15 },
   loginField: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', minWidth: 0, width: '100%' },
   fieldLabel: { color: Colors.ink, fontSize: 11, fontWeight: '800', marginBottom: 7 },
   input: { width: '100%', minHeight: 46, borderWidth: 1, borderColor: Colors.line, borderRadius: 11, paddingHorizontal: 13, paddingVertical: 12, color: Colors.ink, backgroundColor: '#FCFEFD', fontSize: 12, outlineStyle: 'none' } as any,
@@ -705,7 +710,7 @@ const styles = StyleSheet.create<any>({
   choiceText: { color: Colors.muted, fontSize: 10, fontWeight: '700' },
   choiceTextActive: { color: Colors.primaryDark, fontWeight: '900' },
   imageSection: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 15 },
-  imageActions: { flex: 1, minWidth: 260 },
+  imageActions: { flexGrow: 1, flexShrink: 1, flexBasis: 260, minWidth: 0, width: '100%' },
   uploadButton: { alignSelf: 'flex-start', backgroundColor: Colors.purpleSoft, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11 },
   uploadButtonText: { color: Colors.purple, fontSize: 10, fontWeight: '900' },
   orText: { color: Colors.muted, fontSize: 9, marginVertical: 8 },
@@ -776,7 +781,7 @@ const styles = StyleSheet.create<any>({
   colorChoiceActive: { borderColor: Colors.ink, transform: [{ scale: 1.1 }] },
   priorityItem: { minWidth: 300, flex: 1, maxWidth: 530, borderWidth: 1, borderColor: Colors.line, borderRadius: 12, padding: 11, flexDirection: 'row', alignItems: 'center', gap: 9, backgroundColor: Colors.primaryMist },
   priorityItemMobile: { minWidth: 0, width: '100%', maxWidth: '100%', flexBasis: '100%', flexGrow: 0, flexWrap: 'wrap' },
-  priorityEditArea: { flex: 1, minWidth: 175 },
+  priorityEditArea: { flexGrow: 1, flexShrink: 1, flexBasis: 175, minWidth: 0 },
   priorityPreviewRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 7 },
   priorityPreview: { alignSelf: 'flex-start', borderRadius: 16, paddingHorizontal: 11, paddingVertical: 7 },
   priorityPreviewText: { fontSize: 9, fontWeight: '900' },

@@ -11,15 +11,16 @@ import { BrandMark } from './brand-mark';
 export function PublicHeader() {
   const { width } = useWindowDimensions();
   const desktop = width >= 760;
-  const compactMobile = Platform.OS !== 'web' && width < 390;
+  const compactMobile = width < 430;
+  const stackedMobile = width < 360;
   const [accountName, setAccountName] = useState('');
 
   useEffect(() => onAuthStateChanged(auth, (user) => setAccountName(user?.displayName || user?.email || '')), []);
 
   return (
     <View style={styles.shell}>
-      <View style={[styles.inner, compactMobile && styles.innerCompact]}>
-        <Pressable style={styles.brandButton} onPress={() => router.push('/')}><BrandMark compact={compactMobile} /></Pressable>
+      <View style={[styles.inner, compactMobile && styles.innerCompact, stackedMobile && styles.innerStacked]}>
+        <Pressable style={[styles.brandButton, stackedMobile && styles.brandButtonStacked]} onPress={() => router.push('/')}><BrandMark compact={compactMobile} /></Pressable>
         {desktop && (
           <View style={styles.nav}>
             <NavItem label="Trang chủ" onPress={() => router.push('/')} active />
@@ -28,7 +29,7 @@ export function PublicHeader() {
             <NavItem label="Về chúng tôi" />
           </View>
         )}
-        <View style={[styles.actions, compactMobile && styles.actionsCompact]}><Pressable style={[styles.accountButton, compactMobile && styles.actionButtonCompact]} onPress={() => router.push('/account')}><Text style={[styles.accountIcon, compactMobile && styles.actionIconCompact]}>♡</Text><Text numberOfLines={1} style={[styles.accountText, compactMobile && styles.accountTextCompact]}>{accountName ? (desktop ? accountName : 'Tài khoản') : 'Đăng nhập'}</Text></Pressable><Pressable style={[styles.adminButton, compactMobile && styles.actionButtonCompact]} onPress={() => router.push('/admin')}><Text style={[styles.adminIcon, compactMobile && styles.actionIconCompact]}>♙</Text><Text numberOfLines={1} style={[styles.adminText, compactMobile && styles.adminTextCompact]}>{desktop ? 'Trang quản trị' : 'Admin'}</Text></Pressable></View>
+        <View style={[styles.actions, compactMobile && styles.actionsCompact, stackedMobile && styles.actionsStacked]}><Pressable style={[styles.accountButton, compactMobile && styles.actionButtonCompact, stackedMobile && styles.actionButtonStacked]} onPress={() => router.push('/account')}><Text style={[styles.accountIcon, compactMobile && styles.actionIconCompact]}>♡</Text><Text numberOfLines={1} style={[styles.accountText, compactMobile && styles.accountTextCompact]}>{accountName ? (desktop ? accountName : 'Tài khoản') : 'Đăng nhập'}</Text></Pressable><Pressable style={[styles.adminButton, compactMobile && styles.actionButtonCompact, stackedMobile && styles.actionButtonStacked]} onPress={() => router.push('/admin')}><Text style={[styles.adminIcon, compactMobile && styles.actionIconCompact]}>♙</Text><Text numberOfLines={1} style={[styles.adminText, compactMobile && styles.adminTextCompact]}>{desktop ? 'Trang quản trị' : 'Admin'}</Text></Pressable></View>
       </View>
     </View>
   );
@@ -42,13 +43,17 @@ const styles = StyleSheet.create({
   shell: { backgroundColor: 'rgba(255,255,255,0.97)', borderBottomWidth: 1, borderBottomColor: Colors.line, ...(Platform.OS === 'web' ? { position: 'sticky', top: 0, zIndex: 20 } as any : {}) },
   inner: { width: '100%', maxWidth: 1180, alignSelf: 'center', minHeight: 76, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
   innerCompact: { minHeight: 68, paddingHorizontal: 8, gap: 5 },
+  innerStacked: { flexWrap: 'wrap', paddingVertical: 9, gap: 8 },
   brandButton: { flexShrink: 1, minWidth: 0 },
+  brandButtonStacked: { width: '100%', flexBasis: '100%', flexShrink: 0 },
   nav: { flexDirection: 'row', alignItems: 'center', gap: 26 },
   navText: { fontSize: 14, fontWeight: '600', color: Colors.muted },
   navActive: { color: Colors.coralDark },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   actionsCompact: { flexShrink: 0, gap: 4 },
+  actionsStacked: { width: '100%', justifyContent: 'space-between' },
   actionButtonCompact: { minWidth: 0, paddingVertical: 9, paddingHorizontal: 7, gap: 4 },
+  actionButtonStacked: { flex: 1, justifyContent: 'center', maxWidth: '49%' },
   actionIconCompact: { fontSize: 13 },
   accountTextCompact: { maxWidth: 56, fontSize: 10 },
   adminTextCompact: { fontSize: 11 },
