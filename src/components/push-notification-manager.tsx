@@ -14,8 +14,17 @@ export function PushNotificationManager() {
     const stopAuth = onAuthStateChanged(auth, (user) => {
       if (user) void restorePushNotifications().catch(() => undefined);
     });
-    const stopForeground = subscribeForegroundPush();
-    const stopResponses = subscribePushResponses((path) => router.push(path as Href));
+    let stopForeground: () => void = () => undefined;
+    let stopResponses: () => void = () => undefined;
+
+    try {
+      stopForeground = subscribeForegroundPush();
+      stopResponses = subscribePushResponses((path) => router.push(path as Href));
+    } catch {
+      // Notifications are optional. A browser without the necessary APIs
+      // must still be able to render and use the complete application.
+    }
+
     return () => {
       stopAuth();
       stopForeground();

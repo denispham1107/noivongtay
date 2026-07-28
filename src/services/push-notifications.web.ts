@@ -69,23 +69,35 @@ export async function getPushPermissionState(): Promise<PushPermissionState> {
 }
 
 export function subscribeForegroundPush() {
-  if (typeof window === 'undefined' || Notification.permission !== 'granted') {
+  if (
+    typeof window === 'undefined'
+    || !('Notification' in window)
+    || !('serviceWorker' in navigator)
+    || Notification.permission !== 'granted'
+  ) {
     return () => undefined;
   }
-  return onMessage(getMessaging(firebaseApp), (message) => {
-    const title = message.notification?.title ?? message.data?.title ?? 'Nối Vòng Tay';
-    const body = message.notification?.body ?? message.data?.body ?? '';
-    const notification = new Notification(title, {
-      body,
-      icon: sitePath('/favicon.ico'),
-      data: { path: message.data?.path ?? '/notifications' },
+
+  try {
+    return onMessage(getMessaging(firebaseApp), (message) => {
+      const title = message.notification?.title ?? message.data?.title ?? 'Nối Vòng Tay';
+      const body = message.notification?.body ?? message.data?.body ?? '';
+      const notification = new Notification(title, {
+        body,
+        icon: sitePath('/favicon.ico'),
+        data: { path: message.data?.path ?? '/notifications' },
+      });
+      notification.onclick = () => {
+        window.focus();
+        window.location.assign(sitePath(String(notification.data?.path ?? '/notifications')));
+        notification.close();
+      };
     });
-    notification.onclick = () => {
-      window.focus();
-      window.location.assign(sitePath(String(notification.data?.path ?? '/notifications')));
-      notification.close();
-    };
-  });
+  } catch {
+    // Web push is an optional enhancement. Unsupported Safari/WebKit modes
+    // must never prevent the rest of the website from rendering.
+    return () => undefined;
+  }
 }
 
 export function subscribePushResponses(_listener: (path: string) => void) {
@@ -93,5 +105,12 @@ export function subscribePushResponses(_listener: (path: string) => void) {
 }
 
 export async function deleteWebPushToken() {
+  if (
+    typeof window === 'undefined'
+    || !('Notification' in window)
+    || !('serviceWorker' in navigator)
+  ) {
+    return;
+  }
   if (await isSupported()) await deleteToken(getMessaging(firebaseApp)).catch(() => undefined);
 }
