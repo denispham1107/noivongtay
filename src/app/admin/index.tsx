@@ -557,17 +557,17 @@ function CaseForm({ mode, categories, priorities, initialCase, onSaved, onCancel
   return <View style={styles.formCard}>
     <View style={styles.formHeader}><View><Text style={styles.panelTitle}>{editing ? `Xem và chỉnh sửa: ${initialCase?.name}` : 'Thông tin hoàn cảnh mới'}</Text><Text style={styles.panelSubtitle}>{editing ? 'Các thông tin và hình ảnh hiện tại đã được điền sẵn.' : 'Dấu * là trường bắt buộc.'}</Text></View><View style={styles.formHeaderActions}><Text style={styles.secureLabel}>✓ Được bảo vệ bởi Firebase</Text><Pressable style={styles.cancelButton} onPress={onCancel}><Text style={styles.cancelButtonText}>Đóng</Text></Pressable></View></View>
     <View style={styles.formGrid}>
-      <Field label="Họ tên hoặc tên hồ sơ *"><TextInput value={name} onChangeText={setName} placeholder="Ví dụ: Bé Minh An" style={styles.input} /></Field>
-      <Field label="Tỉnh/thành phố *"><TextInput value={location} onChangeText={setLocation} placeholder="Ví dụ: Đồng Nai" style={styles.input} /></Field>
+      <Field grid label="Họ tên hoặc tên hồ sơ *"><TextInput value={name} onChangeText={setName} placeholder="Ví dụ: Bé Minh An" style={styles.input} /></Field>
+      <Field grid label="Tỉnh/thành phố *"><TextInput value={location} onChangeText={setLocation} placeholder="Ví dụ: Đồng Nai" style={styles.input} /></Field>
     </View>
     <ChoiceField label="Danh mục" values={categoryNames} selected={category} onSelect={setCategory} />
     <Field label="Mô tả ngắn *"><TextInput value={summary} onChangeText={setSummary} placeholder="Nội dung xuất hiện trên thẻ hồ sơ" style={[styles.input, styles.multilineShort]} multiline /></Field>
     <Field label="Câu chuyện *"><TextInput value={story} onChangeText={setStory} placeholder="Trình bày hoàn cảnh rõ ràng, tôn trọng và đã được đồng ý chia sẻ" style={[styles.input, styles.multiline]} multiline textAlignVertical="top" /></Field>
     <PriorityChoiceField priorities={priorities} selected={priority} onSelect={setPriority} />
     <View style={styles.formGrid}>
-      <Field label="Tiến độ hỗ trợ (%)"><TextInput value={progress} onChangeText={setProgress} keyboardType="number-pad" placeholder="0" style={styles.input} /></Field>
-      <Field label="Số người quan tâm"><TextInput value={supporters} onChangeText={setSupporters} keyboardType="number-pad" placeholder="0" style={styles.input} /></Field>
-      {editing && canManageMoney && <Field label="Tổng tiền đã nhận hỗ trợ"><TextInput value={receivedAmount} onChangeText={(value) => setReceivedAmount(formatMoneyInput(value))} keyboardType="number-pad" placeholder="0" style={styles.input} /><Text style={styles.moneyPreview}>{formatMoney(normalizeMoney(receivedAmount) ?? 0)}</Text></Field>}
+      <Field grid label="Tiến độ hỗ trợ (%)"><TextInput value={progress} onChangeText={setProgress} keyboardType="number-pad" placeholder="0" style={styles.input} /></Field>
+      <Field grid label="Số người quan tâm"><TextInput value={supporters} onChangeText={setSupporters} keyboardType="number-pad" placeholder="0" style={styles.input} /></Field>
+      {editing && canManageMoney && <Field grid label="Tổng tiền đã nhận hỗ trợ"><TextInput value={receivedAmount} onChangeText={(value) => setReceivedAmount(formatMoneyInput(value))} keyboardType="number-pad" placeholder="0" style={styles.input} /><Text style={styles.moneyPreview}>{formatMoney(normalizeMoney(receivedAmount) ?? 0)}</Text></Field>}
     </View>
     <ImageManager images={images} coverImageId={coverImageId} onPick={pickImages} onCover={setCoverImageId} onUpdate={updateImage} onRemove={removeImage} onMove={moveImage} />
     <View style={styles.optionRow}><Pressable onPress={() => setVerified(!verified)} style={[styles.checkOption, verified && styles.checkOptionActive]}><Text style={[styles.checkText, verified && styles.checkTextActive]}>{verified ? '✓ ' : ''}Đã xác minh thông tin</Text></Pressable></View>
@@ -595,16 +595,16 @@ function ImageManager({ images, coverImageId, onPick, onCover, onUpdate, onRemov
   </View>;
 }
 
-function Field({ label, children, compact = false }: { label: string; children: React.ReactNode; compact?: boolean }) {
-  return <View style={[styles.field, compact && styles.loginField]}><Text style={styles.fieldLabel}>{label}</Text>{children}</View>;
+function Field({ label, children, compact = false, grid = false }: { label: string; children: React.ReactNode; compact?: boolean; grid?: boolean }) {
+  return <View style={[styles.field, grid ? styles.gridField : styles.standaloneField, compact && styles.loginField]}><Text style={styles.fieldLabel}>{label}</Text>{children}</View>;
 }
 
 function ChoiceField({ label, values, labels, selected, onSelect }: { label: string; values: string[]; labels?: string[]; selected: string; onSelect: (value: string) => void }) {
-  return <View style={styles.field}><Text style={styles.fieldLabel}>{label}</Text><View style={styles.choices}>{values.map((value, index) => <Pressable key={value} onPress={() => onSelect(value)} style={[styles.choice, selected === value && styles.choiceActive]}><Text style={[styles.choiceText, selected === value && styles.choiceTextActive]}>{labels?.[index] ?? value}</Text></Pressable>)}</View></View>;
+  return <View style={[styles.field, styles.standaloneField]}><Text style={styles.fieldLabel}>{label}</Text><View style={styles.choices}>{values.map((value, index) => <Pressable key={value} onPress={() => onSelect(value)} style={[styles.choice, selected === value && styles.choiceActive]}><Text style={[styles.choiceText, selected === value && styles.choiceTextActive]}>{labels?.[index] ?? value}</Text></Pressable>)}</View></View>;
 }
 
 function PriorityChoiceField({ priorities, selected, onSelect }: { priorities: CasePriority[]; selected: string; onSelect: (value: string) => void }) {
-  return <View style={styles.field}><Text style={styles.fieldLabel}>Mức độ ưu tiên</Text><View style={styles.choices}>{priorities.map((item) => <Pressable key={item.id} onPress={() => onSelect(item.name)} style={[styles.priorityChoice, { backgroundColor: item.color }, selected === item.name && styles.priorityChoiceActive]}><Text style={[styles.priorityChoiceText, { color: priorityTextColor(item.color) }]}>{selected === item.name ? '✓ ' : '● '}{item.name}</Text></Pressable>)}</View></View>;
+  return <View style={[styles.field, styles.standaloneField]}><Text style={styles.fieldLabel}>Mức độ ưu tiên</Text><View style={styles.choices}>{priorities.map((item) => <Pressable key={item.id} onPress={() => onSelect(item.name)} style={[styles.priorityChoice, { backgroundColor: item.color }, selected === item.name && styles.priorityChoiceActive]}><Text style={[styles.priorityChoiceText, { color: priorityTextColor(item.color) }]}>{selected === item.name ? '✓ ' : '● '}{item.name}</Text></Pressable>)}</View></View>;
 }
 
 const styles = StyleSheet.create<any>({
@@ -698,7 +698,9 @@ const styles = StyleSheet.create<any>({
   cancelButton: { borderWidth: 1, borderColor: Colors.line, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, backgroundColor: Colors.paper },
   cancelButtonText: { color: Colors.muted, fontSize: 9, fontWeight: '800' },
   formGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  field: { flexGrow: 1, flexShrink: 1, flexBasis: 230, minWidth: 0, width: '100%', marginBottom: 15 },
+  field: { minWidth: 0, marginBottom: 15 },
+  standaloneField: { width: '100%' },
+  gridField: { flexGrow: 1, flexShrink: 1, flexBasis: 230, minWidth: 0 },
   loginField: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', minWidth: 0, width: '100%' },
   fieldLabel: { color: Colors.ink, fontSize: 11, fontWeight: '800', marginBottom: 7 },
   input: { width: '100%', minHeight: 46, borderWidth: 1, borderColor: Colors.line, borderRadius: 11, paddingHorizontal: 13, paddingVertical: 12, color: Colors.ink, backgroundColor: '#FCFEFD', fontSize: 12, outlineStyle: 'none' } as any,
