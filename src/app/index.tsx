@@ -87,7 +87,7 @@ export default function HomeScreen() {
             </View>
             {desktop && <Pressable onPress={() => router.push('/explore')}><Text style={styles.viewAll}>Xem tất cả  →</Text></Pressable>}
           </View>
-          {loading ? <Text style={styles.dataMessage}>Đang tải các hoàn cảnh…</Text> : error ? <Text style={styles.dataError}>Không thể tải dữ liệu: {error}</Text> : featured.length === 0 ? <Text style={styles.dataMessage}>Chưa có hoàn cảnh nào được xuất bản.</Text> : <View style={styles.grid}>{featured.map((item) => <CaseCard key={item.id} item={item} priorityOption={priorities.find((entry) => entry.name === item.priority)} />)}</View>}
+          {loading ? <Text style={styles.dataMessage}>Đang tải các hoàn cảnh…</Text> : error ? <Text style={styles.dataError}>Không thể tải dữ liệu: {error}</Text> : featured.length === 0 ? <Text style={styles.dataMessage}>Chưa có hoàn cảnh nào được xuất bản.</Text> : <View style={[styles.grid, !desktop && styles.gridMobile]}>{featured.map((item) => <CaseCard key={item.id} item={item} priorityOption={priorities.find((entry) => entry.name === item.priority)} />)}</View>}
           {!desktop && <Pressable style={styles.outlineButton} onPress={() => router.push('/explore')}><Text style={styles.outlineText}>Xem tất cả hoàn cảnh  →</Text></Pressable>}
 
           <View style={[styles.howSection, desktop && styles.howDesktop]}>
@@ -156,6 +156,7 @@ const styles = StyleSheet.create({
   sectionTitle: { color: Colors.ink, fontSize: 28, lineHeight: 35, fontWeight: '900', letterSpacing: -1 },
   viewAll: { color: Colors.coralDark, fontSize: 13, fontWeight: '800' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 18 },
+  gridMobile: { flexDirection: 'column', flexWrap: 'nowrap' },
   outlineButton: { borderWidth: 1, borderColor: Colors.coral, borderRadius: 13, padding: 14, alignItems: 'center', marginTop: 20 },
   outlineText: { color: Colors.coralDark, fontSize: 13, fontWeight: '800' },
   howSection: { marginTop: 70, backgroundColor: '#EAF7EF', borderRadius: 26, padding: 26, gap: 30, borderWidth: 1, borderColor: '#D6ECDE', overflow: 'hidden' },
