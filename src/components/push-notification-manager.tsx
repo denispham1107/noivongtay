@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 
 import { auth } from '@/services/firebase';
 import {
+  ensureWebAppServiceWorker,
   restorePushNotifications,
   subscribeForegroundPush,
   subscribePushResponses,
@@ -11,6 +12,8 @@ import {
 
 export function PushNotificationManager() {
   useEffect(() => {
+    void ensureWebAppServiceWorker().catch(() => undefined);
+
     const stopAuth = onAuthStateChanged(auth, (user) => {
       if (user) void restorePushNotifications().catch(() => undefined);
     });

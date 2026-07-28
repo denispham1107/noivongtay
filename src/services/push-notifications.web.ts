@@ -24,6 +24,31 @@ function firebaseConfigQuery() {
   return new URLSearchParams(values).toString();
 }
 
+export async function ensureWebAppServiceWorker() {
+  if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
+  return navigator.serviceWorker.register(
+    `${sitePath('/firebase-messaging-sw.js')}?${firebaseConfigQuery()}`,
+  );
+}
+
+function isStandaloneWebApp() {
+  if (typeof window === 'undefined') return false;
+  const standaloneNavigator = navigator as Navigator & { standalone?: boolean };
+  return window.matchMedia?.('(display-mode: standalone)').matches
+    || standaloneNavigator.standalone === true;
+}
+
+export function getPushSetupHint() {
+  if (typeof navigator === 'undefined') return null;
+  const navigatorWithTouch = navigator as Navigator & { maxTouchPoints?: number };
+  const appleMobile = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && (navigatorWithTouch.maxTouchPoints ?? 0) > 1);
+  if (appleMobile && !isStandaloneWebApp()) {
+    return 'Trên iPhone/iPad, hãy chọn Chia sẻ → Thêm vào Màn hình chính, mở Nối Vòng Tay từ biểu tượng vừa tạo rồi nhấn “Bật thông báo”.';
+  }
+  return null;
+}
+
 async function registerWebPush(permissionCanPrompt: boolean): Promise<PushPermissionState> {
   if (typeof window === 'undefined' || !('Notification' in window) || !('serviceWorker' in navigator)) {
     return 'unsupported';
@@ -39,9 +64,8 @@ async function registerWebPush(permissionCanPrompt: boolean): Promise<PushPermis
   const vapidKey = process.env.EXPO_PUBLIC_FIREBASE_VAPID_KEY;
   if (!vapidKey) return 'unsupported';
 
-  const registration = await navigator.serviceWorker.register(
-    `${sitePath('/firebase-messaging-sw.js')}?${firebaseConfigQuery()}`,
-  );
+  const registration = await ensureWebAppServiceWorker();
+  if (!registration) return 'unsupported';
   const token = await getToken(getMessaging(firebaseApp), {
     vapidKey,
     serviceWorkerRegistration: registration,
@@ -84,7 +108,8 @@ export function subscribeForegroundPush() {
       const body = message.notification?.body ?? message.data?.body ?? '';
       const notification = new Notification(title, {
         body,
-        icon: sitePath('/favicon.ico'),
+        icon: sitePath('/pwa-icon-192.png'),
+        badge: sitePath('/pwa-icon-192.png'),
         data: { path: message.data?.path ?? '/notifications' },
       });
       notification.onclick = () => {

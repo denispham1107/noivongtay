@@ -7,6 +7,14 @@ import { savePushToken } from '@/services/push-token-registry';
 
 export type PushPermissionState = 'checking' | 'unsupported' | 'denied' | 'enabled';
 
+export async function ensureWebAppServiceWorker() {
+  return null;
+}
+
+export function getPushSetupHint() {
+  return null;
+}
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldPlaySound: true,

@@ -15,6 +15,9 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 const scopePath = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+
 function sitePath(path) {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${scopePath}${normalizedPath}`;
@@ -24,8 +27,8 @@ messaging.onBackgroundMessage((payload) => {
   const title = payload.notification?.title || payload.data?.title || 'Nối Vòng Tay';
   const options = {
     body: payload.notification?.body || payload.data?.body || '',
-    icon: sitePath('/favicon.ico'),
-    badge: sitePath('/favicon.ico'),
+    icon: sitePath('/pwa-icon-192.png'),
+    badge: sitePath('/pwa-icon-192.png'),
     data: { path: payload.data?.path || '/notifications' },
   };
   self.registration.showNotification(title, options);

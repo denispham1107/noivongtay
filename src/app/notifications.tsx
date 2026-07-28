@@ -16,6 +16,7 @@ import {
 } from '@/services/in-app-notifications';
 import { auth } from '@/services/firebase';
 import {
+  getPushSetupHint,
   getPushPermissionState,
   registerPushNotifications,
   type PushPermissionState,
@@ -40,6 +41,7 @@ export default function NotificationsScreen() {
   const [deleting, setDeleting] = useState(false);
   const [pushState, setPushState] = useState<PushPermissionState>('checking');
   const [enablingPush, setEnablingPush] = useState(false);
+  const [pushSetupHint] = useState(() => getPushSetupHint());
 
   useEffect(() => {
     return onAuthStateChanged(auth, (currentUser) => {
@@ -109,7 +111,7 @@ export default function NotificationsScreen() {
                 {pushState === 'enabled'
                   ? 'Thiết bị này sẽ nhận thông báo mới ngay cả khi bạn không mở ứng dụng.'
                   : pushState === 'unsupported'
-                    ? 'Thiết bị hoặc trình duyệt này chưa hỗ trợ hay chưa được cấu hình Web Push.'
+                    ? pushSetupHint ?? 'Thiết bị hoặc trình duyệt này chưa hỗ trợ hay chưa được cấu hình Web Push.'
                     : 'Cho phép Nối Vòng Tay gửi thông báo đến thiết bị này.'}
               </Text>
             </View>

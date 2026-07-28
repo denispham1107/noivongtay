@@ -33,12 +33,16 @@ export function MobileBottomNavigation() {
 
   useEffect(() => subscribeInAppNotifications(setNotifications), []);
 
-  if (Platform.OS === 'web') return null;
-
   const unreadCount = notifications.filter((item) => !item.read).length;
 
   return (
-    <View style={[styles.shell, { paddingBottom: Math.max(insets.bottom, 6) }]}>
+    <View
+      accessibilityRole="tablist"
+      style={[
+        styles.shell,
+        Platform.OS === 'web' && styles.webShell,
+        { paddingBottom: Math.max(insets.bottom, Platform.OS === 'web' ? 10 : 6) },
+      ]}>
       {tabs.map((tab) => {
         const active = isTabActive(tab.name, pathname);
         return (
@@ -93,6 +97,10 @@ const styles = StyleSheet.create({
     paddingTop: 7,
     paddingHorizontal: 4,
     ...Shadows.card,
+  },
+  webShell: {
+    zIndex: 50,
+    flexShrink: 0,
   },
   item: {
     flex: 1,

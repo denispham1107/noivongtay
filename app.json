@@ -28,7 +28,17 @@
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "lang": "vi",
+      "themeColor": "#2F9B62",
+      "backgroundColor": "#F3FBF6",
+      "barStyle": "default",
+      "description": "Kết nối những hoàn cảnh cần hỗ trợ với cộng đồng bằng sự tử tế và minh bạch.",
+      "splash": {
+        "backgroundColor": "#F3FBF6",
+        "resizeMode": "contain",
+        "image": "./assets/images/splash-icon.png"
+      }
     },
     "splash": {
       "image": "./assets/images/splash-icon.png",

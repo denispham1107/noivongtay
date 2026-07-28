@@ -3,7 +3,7 @@ import '@/global.css';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { Platform, View } from 'react-native';
+import { View } from 'react-native';
 
 import { BrandedLoader } from '@/components/branded-loader';
 import { MobileBottomNavigation } from '@/components/mobile-bottom-navigation';
@@ -30,7 +30,7 @@ export default function RootLayout() {
         }}
       />
       <PushNotificationManager />
-      {Platform.OS !== 'web' && <MobileBottomNavigation />}
+      <MobileBottomNavigation />
     </View>
   );
 }

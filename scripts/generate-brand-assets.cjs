@@ -82,6 +82,9 @@ async function main() {
   await Promise.all([
     write(fullIcon, 'icon.png', 1024),
     write(fullIcon, 'favicon.png', 128),
+    write(fullIcon, 'pwa-icon-180.png', 180),
+    write(fullIcon, 'pwa-icon-192.png', 192),
+    write(fullIcon, 'pwa-icon-512.png', 512),
     write(foreground, 'splash-icon.png', 512),
     write(foreground, 'android-icon-foreground.png', 1024),
     write(background, 'android-icon-background.png', 1024),
