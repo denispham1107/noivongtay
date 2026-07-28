@@ -45,6 +45,7 @@ export const TextInput = forwardRef<NativeTextInput, TextInputProps>(function Te
     if (!target?.scrollIntoView || typeof window === 'undefined') return;
 
     const viewport = window.visualViewport;
+    let largestViewportHeight = viewport?.height ?? window.innerHeight;
     const revealIfCovered = () => {
       if (document.activeElement !== target) return;
 
@@ -64,6 +65,17 @@ export const TextInput = forwardRef<NativeTextInput, TextInputProps>(function Te
 
     let fallbackTimer: ReturnType<typeof setTimeout>;
     const handleKeyboardViewportChange = () => {
+      const currentViewportHeight = viewport?.height ?? window.innerHeight;
+      largestViewportHeight = Math.max(largestViewportHeight, currentViewportHeight);
+      const keyboardThreshold = Math.max(80, largestViewportHeight * 0.12);
+      const keyboardIsOpening =
+        largestViewportHeight - currentViewportHeight >= keyboardThreshold;
+
+      // Android Chrome also emits a viewport resize when its address bar hides.
+      // That resize normally increases (or only slightly changes) the height and
+      // must not interrupt the original tap that is opening the keyboard.
+      if (!keyboardIsOpening) return;
+
       viewport?.removeEventListener('resize', handleKeyboardViewportChange);
       clearTimeout(fallbackTimer);
       requestAnimationFrame(revealIfCovered);
@@ -74,7 +86,7 @@ export const TextInput = forwardRef<NativeTextInput, TextInputProps>(function Te
     fallbackTimer = setTimeout(() => {
       viewport?.removeEventListener('resize', handleKeyboardViewportChange);
       revealIfCovered();
-    }, 650);
+    }, 900);
   }, []);
 
   const handleFocus = useCallback((event: TextInputFocusEvent) => {

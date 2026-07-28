@@ -10,7 +10,8 @@ and preserve it whenever adding or restyling TextInput, input, textarea, select,
 or contenteditable controls.
 Do not call `scrollIntoView` during the initial mobile-web input focus event or
 its first animation frame. Wait for `visualViewport` to resize as the keyboard
-opens, then scroll only when the focused input is actually obscured.
+opens, require a meaningful viewport-height reduction rather than an Android
+browser-toolbar resize, then scroll only when the focused input is obscured.
 
 # MOBILE WEB REFLOW INVARIANT
 
