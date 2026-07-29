@@ -250,10 +250,6 @@ function CaseManager({ cases, categories, priorities, loading, error, showForm, 
 
   return <>
     <View style={styles.welcome}><View><Text style={styles.welcomeTitle}>Quản lý hoàn cảnh</Text><Text style={styles.welcomeText}>Chọn một hồ sơ để xem lại và chỉnh sửa thông tin đã đăng.</Text></View><Pressable style={styles.primaryButtonSmall} onPress={toggleCreateForm}><Text style={styles.primaryButtonText}>{showForm ? 'Đóng biểu mẫu' : '＋ Thêm hoàn cảnh mới'}</Text></Pressable></View>
-    <CategoryManager categories={categories} cases={cases} onChanged={refresh} />
-    <PriorityManager priorities={priorities} cases={cases} onChanged={refresh} />
-    {showForm && <CaseForm mode="create" categories={categories} priorities={priorities} onSaved={afterSaved} onCancel={closeForm} />}
-    {selectedCase && <CaseForm key={selectedCase.id} mode="edit" categories={categories} priorities={priorities} initialCase={selectedCase} onSaved={afterSaved} onCancel={closeForm} canManageMoney={canManageMoney} />}
     {!!error && <Text style={styles.errorBox}>{error}</Text>}
     <View style={styles.tablePanel}>
       <View style={styles.tableHeader}><View><Text style={styles.panelTitle}>Danh sách hồ sơ</Text><Text style={styles.panelSubtitle}>Nhấn vào một dòng để xem và chỉnh sửa.</Text></View><Pressable onPress={refresh}><Text style={styles.refreshText}>↻ Làm mới</Text></Pressable></View>
@@ -262,6 +258,10 @@ function CaseManager({ cases, categories, priorities, loading, error, showForm, 
         return <Pressable key={item.id} accessibilityRole="button" accessibilityLabel={`Xem và chỉnh sửa hồ sơ ${item.name}`} onPress={() => openCase(item)} style={({ pressed }) => [styles.caseRow, selectedCase?.id === item.id && styles.caseRowSelected, pressed && styles.caseRowPressed]}><Image source={item.image} style={styles.caseThumb} contentFit="cover" /><View style={styles.caseName}><Text style={styles.rowTitle}>{item.name}</Text><Text style={styles.rowSub}>{item.category} · {item.location}</Text></View>{priorityOption && <View style={[styles.status, { backgroundColor: priorityOption.color }]}><Text style={[styles.statusText, { color: priorityTextColor(priorityOption.color) }]}>● {item.priority}</Text></View>}<View style={[styles.status, { backgroundColor: item.status === 'published' ? Colors.greenSoft : Colors.purpleSoft }]}><Text style={[styles.statusText, { color: item.status === 'published' ? Colors.green : Colors.purple }]}>{item.status === 'published' ? 'Đang công khai' : 'Bản nháp'}</Text></View><Text style={styles.rowDate}>{item.updated}</Text><Text style={styles.rowAction}>Xem / Sửa ›</Text></Pressable>;
       })}
     </View>
+    {showForm && <CaseForm mode="create" categories={categories} priorities={priorities} onSaved={afterSaved} onCancel={closeForm} />}
+    {selectedCase && <CaseForm key={selectedCase.id} mode="edit" categories={categories} priorities={priorities} initialCase={selectedCase} onSaved={afterSaved} onCancel={closeForm} canManageMoney={canManageMoney} />}
+    <CategoryManager categories={categories} cases={cases} onChanged={refresh} />
+    <PriorityManager priorities={priorities} cases={cases} onChanged={refresh} />
   </>;
 }
 
