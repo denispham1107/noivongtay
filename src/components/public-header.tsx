@@ -20,7 +20,7 @@ export function PublicHeader() {
   return (
     <View style={styles.shell}>
       <View style={[styles.inner, compactMobile && styles.innerCompact, stackedMobile && styles.innerStacked]}>
-        <Pressable style={[styles.brandButton, stackedMobile && styles.brandButtonStacked]} onPress={() => router.push('/')}><BrandMark compact={compactMobile} /></Pressable>
+        <Pressable style={[styles.brandButton, compactMobile && styles.brandButtonCompact, stackedMobile && styles.brandButtonStacked]} onPress={() => router.push('/')}><BrandMark compact={compactMobile} /></Pressable>
         {desktop && (
           <View style={styles.nav}>
             <NavItem label="Trang chủ" onPress={() => router.push('/')} active />
@@ -44,19 +44,20 @@ const styles = StyleSheet.create({
   inner: { width: '100%', maxWidth: 1180, alignSelf: 'center', minHeight: 76, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
   innerCompact: { minHeight: 68, paddingHorizontal: 8, gap: 5 },
   innerStacked: { flexWrap: 'wrap', paddingVertical: 9, gap: 8 },
-  brandButton: { flexShrink: 0, minWidth: 0 },
+  brandButton: { flexShrink: 1, minWidth: 0 },
+  brandButtonCompact: { flex: 1, flexBasis: 150, maxWidth: 170, overflow: 'hidden' },
   brandButtonStacked: { width: '100%', flexBasis: '100%', flexShrink: 0 },
   nav: { flexDirection: 'row', alignItems: 'center', gap: 26 },
   navText: { fontSize: 14, fontWeight: '600', color: Colors.muted },
   navActive: { color: Colors.coralDark },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  actionsCompact: { flexShrink: 0, gap: 4 },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: 7, minWidth: 0 },
+  actionsCompact: { flexShrink: 1, gap: 4, minWidth: 0, maxWidth: 184 },
   actionsStacked: { width: '100%', justifyContent: 'space-between' },
-  actionButtonCompact: { minWidth: 0, paddingVertical: 9, paddingHorizontal: 7, gap: 4 },
+  actionButtonCompact: { flexShrink: 1, minWidth: 0, paddingVertical: 9, paddingHorizontal: 7, gap: 4, overflow: 'hidden' },
   actionButtonStacked: { flex: 1, justifyContent: 'center', maxWidth: '49%' },
   actionIconCompact: { fontSize: 13 },
-  accountTextCompact: { maxWidth: 56, fontSize: 10 },
-  adminTextCompact: { fontSize: 11 },
+  accountTextCompact: { flexShrink: 1, minWidth: 0, maxWidth: 56, fontSize: 10 },
+  adminTextCompact: { flexShrink: 1, minWidth: 0, maxWidth: 42, fontSize: 11 },
   accountButton: { maxWidth: 165, backgroundColor: Colors.primarySoft, borderWidth: 1, borderColor: Colors.line, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 6 },
   accountIcon: { color: Colors.primaryDark, fontSize: 15 },
   accountText: { color: Colors.primaryDark, fontSize: 11, fontWeight: '800', maxWidth: 120 },

@@ -19,13 +19,13 @@ export function BrandMark({ compact = false }: { compact?: boolean }) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 },
-  rowCompact: { gap: 6 },
+  rowCompact: { gap: 6, maxWidth: '100%' },
   mark: { width: 42, height: 42, borderRadius: 14, backgroundColor: Colors.coral, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: '-4deg' }] },
   markCompact: { width: 34, height: 34, borderRadius: 11 },
   heart: { color: '#E84C5B', fontSize: 21, transform: [{ rotate: '4deg' }] },
   heartCompact: { fontSize: 17 },
   copy: { flexShrink: 1, minWidth: 0 },
-  copyCompact: { width: 125, maxWidth: 125 },
+  copyCompact: { flex: 1, flexShrink: 1, minWidth: 0, maxWidth: 125 },
   name: { color: Colors.ink, fontSize: 18, fontWeight: '800', letterSpacing: -0.3 },
   nameCompact: { fontSize: 14, letterSpacing: -0.25 },
   tagline: { color: Colors.muted, fontSize: 10, marginTop: 1 },
