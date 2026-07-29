@@ -38,6 +38,7 @@ import { adjustCaseReceivedAmount } from '@/services/support';
 import { formatMoney, formatMoneyInput, normalizeMoney } from '@/utils/currency';
 
 type Section = 'Tổng quan' | 'Hoàn cảnh' | 'Người dùng';
+type CaseManagerView = 'records' | 'setup';
 
 function adminSections(role: AdminRole): Section[] {
   return role === 'super_admin' || role === 'admin' ? ['Tổng quan', 'Hoàn cảnh', 'Người dùng'] : ['Tổng quan', 'Hoàn cảnh'];
@@ -226,14 +227,19 @@ function Guide({ number, title, text }: { number: string; title: string; text: s
 }
 
 function CaseManager({ cases, categories, priorities, loading, error, showForm, setShowForm, refresh, canManageMoney }: { cases: AdminCase[]; categories: CaseCategory[]; priorities: CasePriority[]; loading: boolean; error: string; showForm: boolean; setShowForm: (value: boolean) => void; refresh: () => Promise<void>; canManageMoney: boolean }) {
+  const { width } = useWindowDimensions();
+  const compact = width < 430;
+  const [managerView, setManagerView] = useState<CaseManagerView>(showForm ? 'setup' : 'records');
   const [selectedCase, setSelectedCase] = useState<AdminCase | null>(null);
 
   const toggleCreateForm = () => {
+    setManagerView('setup');
     setSelectedCase(null);
     setShowForm(!showForm);
   };
 
   const openCase = (item: AdminCase) => {
+    setManagerView('records');
     setShowForm(false);
     setSelectedCase(item);
   };
@@ -249,19 +255,36 @@ function CaseManager({ cases, categories, priorities, loading, error, showForm, 
   };
 
   return <>
-    <View style={styles.welcome}><View><Text style={styles.welcomeTitle}>Quản lý hoàn cảnh</Text><Text style={styles.welcomeText}>Chọn một hồ sơ để xem lại và chỉnh sửa thông tin đã đăng.</Text></View><Pressable style={styles.primaryButtonSmall} onPress={toggleCreateForm}><Text style={styles.primaryButtonText}>{showForm ? 'Đóng biểu mẫu' : '＋ Thêm hoàn cảnh mới'}</Text></Pressable></View>
-    {!!error && <Text style={styles.errorBox}>{error}</Text>}
-    <View style={styles.tablePanel}>
-      <View style={styles.tableHeader}><View><Text style={styles.panelTitle}>Danh sách hồ sơ</Text><Text style={styles.panelSubtitle}>Nhấn vào một dòng để xem và chỉnh sửa.</Text></View><Pressable onPress={refresh}><Text style={styles.refreshText}>↻ Làm mới</Text></Pressable></View>
-      {loading ? <ActivityIndicator style={styles.listLoader} color={Colors.primary} /> : cases.length === 0 ? <Text style={styles.emptyText}>Chưa có hồ sơ nào trong Firestore.</Text> : cases.map((item) => {
-        const priorityOption = priorities.find((entry) => entry.name === item.priority);
-        return <Pressable key={item.id} accessibilityRole="button" accessibilityLabel={`Xem và chỉnh sửa hồ sơ ${item.name}`} onPress={() => openCase(item)} style={({ pressed }) => [styles.caseRow, selectedCase?.id === item.id && styles.caseRowSelected, pressed && styles.caseRowPressed]}><Image source={item.image} style={styles.caseThumb} contentFit="cover" /><View style={styles.caseName}><Text style={styles.rowTitle}>{item.name}</Text><Text style={styles.rowSub}>{item.category} · {item.location}</Text></View>{priorityOption && <View style={[styles.status, { backgroundColor: priorityOption.color }]}><Text style={[styles.statusText, { color: priorityTextColor(priorityOption.color) }]}>● {item.priority}</Text></View>}<View style={[styles.status, { backgroundColor: item.status === 'published' ? Colors.greenSoft : Colors.purpleSoft }]}><Text style={[styles.statusText, { color: item.status === 'published' ? Colors.green : Colors.purple }]}>{item.status === 'published' ? 'Đang công khai' : 'Bản nháp'}</Text></View><Text style={styles.rowDate}>{item.updated}</Text><Text style={styles.rowAction}>Xem / Sửa ›</Text></Pressable>;
-      })}
+    <View style={styles.welcome}><View><Text style={styles.welcomeTitle}>Quản lý hoàn cảnh</Text><Text style={styles.welcomeText}>Quản lý hồ sơ đã tạo hoặc mở khu vực tạo mới và thiết lập dữ liệu.</Text></View></View>
+    <View style={[styles.caseManagerTabs, compact && styles.caseManagerTabsCompact]}>
+      <Pressable accessibilityRole="tab" accessibilityState={{ selected: managerView === 'records' }} onPress={() => { setManagerView('records'); setShowForm(false); }} style={[styles.caseManagerTab, compact && styles.caseManagerTabCompact, managerView === 'records' && styles.caseManagerTabActive]}>
+        <View style={styles.caseManagerTabCopy}><Text style={[styles.caseManagerTabTitle, managerView === 'records' && styles.caseManagerTabTitleActive]}>Hồ sơ đã tạo</Text><Text style={[styles.caseManagerTabText, managerView === 'records' && styles.caseManagerTabTextActive]}>Xem và chỉnh sửa các hoàn cảnh</Text></View>
+        <Text style={[styles.caseManagerTabBadge, managerView === 'records' && styles.caseManagerTabBadgeActive]}>{cases.length}</Text>
+      </Pressable>
+      <Pressable accessibilityRole="tab" accessibilityState={{ selected: managerView === 'setup' }} onPress={() => setManagerView('setup')} style={[styles.caseManagerTab, compact && styles.caseManagerTabCompact, managerView === 'setup' && styles.caseManagerTabActive]}>
+        <View style={styles.caseManagerTabCopy}><Text style={[styles.caseManagerTabTitle, managerView === 'setup' && styles.caseManagerTabTitleActive]}>Tạo mới & thiết lập</Text><Text style={[styles.caseManagerTabText, managerView === 'setup' && styles.caseManagerTabTextActive]}>Tạo hồ sơ, danh mục và mức ưu tiên</Text></View>
+        <Text style={[styles.caseManagerTabBadge, managerView === 'setup' && styles.caseManagerTabBadgeActive]}>3</Text>
+      </Pressable>
     </View>
-    {showForm && <CaseForm mode="create" categories={categories} priorities={priorities} onSaved={afterSaved} onCancel={closeForm} />}
-    {selectedCase && <CaseForm key={selectedCase.id} mode="edit" categories={categories} priorities={priorities} initialCase={selectedCase} onSaved={afterSaved} onCancel={closeForm} canManageMoney={canManageMoney} />}
-    <CategoryManager categories={categories} cases={cases} onChanged={refresh} />
-    <PriorityManager priorities={priorities} cases={cases} onChanged={refresh} />
+    {!!error && <Text style={styles.errorBox}>{error}</Text>}
+    {managerView === 'records' ? <>
+      <View style={styles.tablePanel}>
+        <View style={styles.tableHeader}><View><Text style={styles.panelTitle}>Danh sách hồ sơ</Text><Text style={styles.panelSubtitle}>Nhấn vào một dòng để xem và chỉnh sửa.</Text></View><Pressable onPress={refresh}><Text style={styles.refreshText}>↻ Làm mới</Text></Pressable></View>
+        {loading ? <ActivityIndicator style={styles.listLoader} color={Colors.primary} /> : cases.length === 0 ? <Text style={styles.emptyText}>Chưa có hồ sơ nào trong Firestore.</Text> : cases.map((item) => {
+          const priorityOption = priorities.find((entry) => entry.name === item.priority);
+          return <Pressable key={item.id} accessibilityRole="button" accessibilityLabel={`Xem và chỉnh sửa hồ sơ ${item.name}`} onPress={() => openCase(item)} style={({ pressed }) => [styles.caseRow, selectedCase?.id === item.id && styles.caseRowSelected, pressed && styles.caseRowPressed]}><Image source={item.image} style={styles.caseThumb} contentFit="cover" /><View style={styles.caseName}><Text style={styles.rowTitle}>{item.name}</Text><Text style={styles.rowSub}>{item.category} · {item.location}</Text></View>{priorityOption && <View style={[styles.status, { backgroundColor: priorityOption.color }]}><Text style={[styles.statusText, { color: priorityTextColor(priorityOption.color) }]}>● {item.priority}</Text></View>}<View style={[styles.status, { backgroundColor: item.status === 'published' ? Colors.greenSoft : Colors.purpleSoft }]}><Text style={[styles.statusText, { color: item.status === 'published' ? Colors.green : Colors.purple }]}>{item.status === 'published' ? 'Đang công khai' : 'Bản nháp'}</Text></View><Text style={styles.rowDate}>{item.updated}</Text><Text style={styles.rowAction}>Xem / Sửa ›</Text></Pressable>;
+        })}
+      </View>
+      {selectedCase && <CaseForm key={selectedCase.id} mode="edit" categories={categories} priorities={priorities} initialCase={selectedCase} onSaved={afterSaved} onCancel={closeForm} canManageMoney={canManageMoney} />}
+    </> : <>
+      <View style={styles.caseSetupIntro}>
+        <View style={styles.caseSetupCopy}><Text style={styles.panelTitle}>Tạo hoàn cảnh mới</Text><Text style={styles.panelSubtitle}>Nhập thông tin, hình ảnh và trạng thái xuất bản cho một hồ sơ mới.</Text></View>
+        <Pressable style={styles.primaryButtonSmall} onPress={toggleCreateForm}><Text style={styles.primaryButtonText}>{showForm ? 'Đóng biểu mẫu' : '＋ Thêm hoàn cảnh mới'}</Text></Pressable>
+      </View>
+      {showForm && <CaseForm mode="create" categories={categories} priorities={priorities} onSaved={afterSaved} onCancel={closeForm} />}
+      <CategoryManager categories={categories} cases={cases} onChanged={refresh} />
+      <PriorityManager priorities={priorities} cases={cases} onChanged={refresh} />
+    </>}
   </>;
 }
 
@@ -657,6 +680,65 @@ const styles = StyleSheet.create<any>({
   welcome: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 24 },
   welcomeTitle: { color: Colors.ink, fontSize: 25, fontWeight: '900', letterSpacing: -0.7 },
   welcomeText: { color: Colors.muted, fontSize: 12, marginTop: 6 },
+  caseManagerTabs: {
+    flexDirection: 'row',
+    gap: 10,
+    padding: 6,
+    marginBottom: 18,
+    backgroundColor: Colors.paper,
+    borderWidth: 1,
+    borderColor: Colors.line,
+    borderRadius: 18,
+    ...Shadows.card,
+  },
+  caseManagerTabsCompact: { flexDirection: 'column' },
+  caseManagerTab: {
+    flex: 1,
+    minWidth: 0,
+    minHeight: 64,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderRadius: 13,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  caseManagerTabCompact: { width: '100%', flexGrow: 0, flexBasis: 'auto' },
+  caseManagerTabActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  caseManagerTabCopy: { flex: 1, minWidth: 0 },
+  caseManagerTabTitle: { color: Colors.ink, fontSize: 12, fontWeight: '900' },
+  caseManagerTabTitleActive: { color: '#fff' },
+  caseManagerTabText: { color: Colors.muted, fontSize: 9, lineHeight: 14, marginTop: 3 },
+  caseManagerTabTextActive: { color: '#E6F4EC' },
+  caseManagerTabBadge: {
+    color: Colors.primaryDark,
+    backgroundColor: Colors.primarySoft,
+    minWidth: 26,
+    textAlign: 'center',
+    borderRadius: 13,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    fontSize: 9,
+    fontWeight: '900',
+    flexShrink: 0,
+  },
+  caseManagerTabBadgeActive: { color: Colors.primaryDark, backgroundColor: '#fff' },
+  caseSetupIntro: {
+    backgroundColor: Colors.purpleSoft,
+    borderWidth: 1,
+    borderColor: Colors.line,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  caseSetupCopy: { flexGrow: 1, flexShrink: 1, flexBasis: 260, minWidth: 0 },
   primaryButtonSmall: { backgroundColor: Colors.primary, borderRadius: 11, paddingHorizontal: 16, paddingVertical: 12 },
   primaryButton: { backgroundColor: Colors.primary, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 14, alignItems: 'center', marginTop: 15, minHeight: 48, justifyContent: 'center' },
   primaryButtonText: { color: '#fff', fontSize: 12, fontWeight: '900' },
