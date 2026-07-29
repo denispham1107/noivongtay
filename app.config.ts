@@ -4,6 +4,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: config.name || 'Nối Vòng Tay',
   slug: config.slug || 'noi-vong-tay',
+  plugins: [
+    ...(config.plugins || []),
+    'expo-video',
+  ],
   experiments: {
     ...config.experiments,
     // GitHub Pages hosts project sites below /<repository-name>.

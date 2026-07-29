@@ -50,7 +50,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Cho phép Nối Vòng Tay chọn ảnh để đăng hồ sơ cần hỗ trợ.",
+          "photosPermission": "Cho phép Nối Vòng Tay chọn hình ảnh và video để đăng hồ sơ cần hỗ trợ.",
           "cameraPermission": "Cho phép Nối Vòng Tay chụp ảnh cho hồ sơ cần hỗ trợ.",
           "microphonePermission": false
         }

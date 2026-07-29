@@ -2,6 +2,7 @@ import { collection, getDocs, limit, onSnapshot, orderBy, query, where } from 'f
 
 import type { CharityCase } from '@/data/cases';
 import { charityCases as demoCases, getCaseImages, getCoverImage } from '@/data/cases';
+import { normalizeCaseVideo } from '@/utils/case-video';
 import { db, isFirebaseConfigured } from './firebase';
 
 export async function getPublishedCases(): Promise<CharityCase[]> {
@@ -21,6 +22,7 @@ export async function getPublishedCases(): Promise<CharityCase[]> {
     return {
       ...item,
       receivedAmount: Number(item.receivedAmount ?? 0),
+      video: normalizeCaseVideo(item.video),
       images,
       coverImageId: cover?.id,
       image: cover?.url || item.image,
@@ -51,6 +53,7 @@ export function subscribePublishedCases(
       return {
         ...item,
         receivedAmount: Number(item.receivedAmount ?? 0),
+        video: normalizeCaseVideo(item.video),
         images,
         coverImageId: cover?.id,
         image: cover?.url || item.image,

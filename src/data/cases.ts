@@ -7,6 +7,14 @@ export type CaseImage = {
   order: number;
 };
 
+export type CaseVideo = {
+  source: 'upload' | 'youtube';
+  url: string;
+  storagePath?: string;
+  youtubeId?: string;
+  title?: string;
+};
+
 export type CharityCase = {
   id: string;
   name: string;
@@ -17,6 +25,7 @@ export type CharityCase = {
   image: string;
   images?: CaseImage[];
   coverImageId?: string;
+  video?: CaseVideo | null;
   priority: string;
   updated: string;
   progress: number;

@@ -11,8 +11,9 @@ import {
 } from 'firebase/firestore';
 import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
-import type { CaseImage, CharityCase } from '@/data/cases';
+import type { CaseImage, CaseVideo, CharityCase } from '@/data/cases';
 import { getCaseImages, getCoverImage } from '@/data/cases';
+import { getYouTubeId, normalizeCaseVideo } from '@/utils/case-video';
 import { auth, db, storage } from './firebase';
 
 export const adminRoles = ['super_admin', 'admin', 'editor', 'moderator'] as const;
@@ -34,9 +35,19 @@ export type CaseImageInput = {
   asset?: ImagePickerAsset | null;
 };
 
-export type NewCharityCase = Omit<CharityCase, 'id' | 'image' | 'images' | 'coverImageId'> & {
+export type CaseVideoInput = {
+  source: 'upload' | 'youtube';
+  url?: string;
+  storagePath?: string;
+  youtubeId?: string;
+  title: string;
+  asset?: ImagePickerAsset | null;
+};
+
+export type NewCharityCase = Omit<CharityCase, 'id' | 'image' | 'images' | 'coverImageId' | 'video'> & {
   images: CaseImageInput[];
   coverImageId: string;
+  video: CaseVideoInput | null;
   status: CaseStatus;
 };
 
@@ -89,6 +100,51 @@ async function prepareImages(caseId: string, inputs: CaseImageInput[]): Promise<
   }));
 }
 
+async function uploadCaseVideo(caseId: string, asset: ImagePickerAsset) {
+  if (asset.fileSize && asset.fileSize > 100 * 1024 * 1024) throw new Error('Video phải có dung lượng không quá 100 MB.');
+
+  const contentType = asset.mimeType || asset.file?.type || 'video/mp4';
+  if (!['video/mp4', 'video/webm', 'video/quicktime'].includes(contentType)) throw new Error('Chỉ chấp nhận video MP4, WebM hoặc MOV.');
+
+  const extension = contentType === 'video/webm' ? 'webm' : contentType === 'video/quicktime' ? 'mov' : 'mp4';
+  const originalName = asset.fileName || `video-hoan-canh.${extension}`;
+  const fileName = `${Date.now()}-${safeFileName(originalName)}`;
+  const storagePath = `public/cases/${caseId}/videos/${fileName}`;
+  const videoRef = ref(storage, storagePath);
+  let blob: Blob;
+  if (asset.file) blob = asset.file;
+  else blob = await fetch(asset.uri).then((response) => response.blob());
+
+  await uploadBytes(videoRef, blob, { contentType });
+  return { url: await getDownloadURL(videoRef), storagePath };
+}
+
+async function prepareVideo(caseId: string, input: CaseVideoInput | null): Promise<CaseVideo | null> {
+  if (!input) return null;
+  if (input.source === 'youtube') {
+    const youtubeId = getYouTubeId(input.youtubeId || input.url || '');
+    if (!youtubeId) throw new Error('Liên kết YouTube không hợp lệ.');
+    return {
+      source: 'youtube',
+      youtubeId,
+      url: `https://www.youtube.com/watch?v=${youtubeId}`,
+      title: input.title.trim(),
+    };
+  }
+
+  const uploaded = input.asset ? await uploadCaseVideo(caseId, input.asset) : null;
+  const url = uploaded?.url || input.url?.trim();
+  if (!url) throw new Error('Hãy chọn video muốn tải lên.');
+  const video: CaseVideo = {
+    source: 'upload',
+    url,
+    title: input.title.trim(),
+  };
+  const storagePath = uploaded?.storagePath || input.storagePath;
+  if (storagePath) video.storagePath = storagePath;
+  return video;
+}
+
 async function requireEditorialUser(action: string) {
   const currentUser = auth.currentUser;
   if (!currentUser) throw new Error('Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.');
@@ -97,7 +153,7 @@ async function requireEditorialUser(action: string) {
   return currentUser;
 }
 
-function buildCaseData(input: NewCharityCase, images: CaseImage[]) {
+function buildCaseData(input: NewCharityCase, images: CaseImage[], video: CaseVideo | null) {
   const cover = images.find((entry) => entry.id === input.coverImageId) || images[0];
   if (!cover) throw new Error('Hãy chọn ảnh đại diện cho hồ sơ.');
   return {
@@ -109,6 +165,7 @@ function buildCaseData(input: NewCharityCase, images: CaseImage[]) {
     image: cover.url,
     images,
     coverImageId: cover.id,
+    video,
     priority: input.priority,
     updated: 'Vừa cập nhật',
     progress: Math.max(0, Math.min(100, Math.round(input.progress))),
@@ -121,8 +178,8 @@ function buildCaseData(input: NewCharityCase, images: CaseImage[]) {
 export async function createCharityCase(input: NewCharityCase) {
   const currentUser = await requireEditorialUser('tạo');
   const caseRef = doc(collection(db, 'charityCases'));
-  const images = await prepareImages(caseRef.id, input.images);
-  const data = buildCaseData(input, images);
+  const [images, video] = await Promise.all([prepareImages(caseRef.id, input.images), prepareVideo(caseRef.id, input.video)]);
+  const data = buildCaseData(input, images, video);
 
   await setDoc(caseRef, {
     ...data,
@@ -147,8 +204,9 @@ export async function updateCharityCase(caseId: string, input: NewCharityCase) {
     images: currentData.images,
     coverImageId: currentData.coverImageId,
   });
-  const images = await prepareImages(caseId, input.images);
-  const data = buildCaseData(input, images);
+  const previousVideo = normalizeCaseVideo(currentData.video);
+  const [images, video] = await Promise.all([prepareImages(caseId, input.images), prepareVideo(caseId, input.video)]);
+  const data = buildCaseData(input, images, video);
 
   await updateDoc(caseRef, {
     ...data,
@@ -159,7 +217,13 @@ export async function updateCharityCase(caseId: string, input: NewCharityCase) {
 
   const retainedPaths = new Set(images.map((entry) => entry.storagePath).filter(Boolean));
   const removedPaths = previousImages.map((entry) => entry.storagePath).filter((path): path is string => !!path && !retainedPaths.has(path));
-  await Promise.allSettled(removedPaths.map((path) => deleteObject(ref(storage, path))));
+  const removedVideoPath = previousVideo?.source === 'upload' && previousVideo.storagePath !== video?.storagePath
+    ? previousVideo.storagePath
+    : undefined;
+  await Promise.allSettled([
+    ...removedPaths.map((path) => deleteObject(ref(storage, path))),
+    ...(removedVideoPath ? [deleteObject(ref(storage, removedVideoPath))] : []),
+  ]);
 }
 
 function toAdminCase(id: string, data: DocumentData): AdminCase {
@@ -173,6 +237,7 @@ function toAdminCase(id: string, data: DocumentData): AdminCase {
     image: data.image ?? '',
     images: data.images,
     coverImageId: data.coverImageId,
+    video: normalizeCaseVideo(data.video),
     priority: data.priority ?? 'Đang cần hỗ trợ',
     updated: data.updated ?? 'Vừa cập nhật',
     progress: Number(data.progress ?? 0),

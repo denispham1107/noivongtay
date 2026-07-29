@@ -5,6 +5,7 @@ import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } fr
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   StyleSheet,
   useWindowDimensions,
@@ -15,10 +16,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BrandMark } from '@/components/brand-mark';
 import { BrandedLoader } from '@/components/branded-loader';
 import { AdminUserManager } from '@/components/admin-user-manager';
+import { CaseVideoPlayer } from '@/components/case-video';
 import { Text, TextInput } from '@/components/fixed-text';
 import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view';
 import { PasswordInput } from '@/components/password-input';
 import { Colors, Shadows } from '@/constants/brand';
+import type { CaseVideo } from '@/data/cases';
 import {
   createCharityCase,
   getAdminCases,
@@ -28,6 +31,7 @@ import {
   type AdminRole,
   type CaseImageInput,
   type CaseStatus,
+  type CaseVideoInput,
   type NewCharityCase,
 } from '@/services/admin';
 import { createCategoryId, getCaseCategories, saveCaseCategories, type CaseCategory } from '@/services/categories';
@@ -36,6 +40,7 @@ import { createPriorityId, getCasePriorities, priorityColorPalette, priorityText
 import { removeCurrentDevicePushToken } from '@/services/push-token-registry';
 import { adjustCaseReceivedAmount } from '@/services/support';
 import { formatMoney, formatMoneyInput, normalizeMoney } from '@/utils/currency';
+import { normalizeCaseVideo } from '@/utils/case-video';
 
 type Section = 'Tổng quan' | 'Hoàn cảnh' | 'Người dùng';
 type CaseManagerView = 'records' | 'setup';
@@ -469,6 +474,13 @@ function CaseForm({ mode, categories, priorities, initialCase, onSaved, onCancel
     order: index,
   })));
   const [coverImageId, setCoverImageId] = useState(initialCase?.coverImageId ?? initialCase?.images?.[0]?.id ?? '');
+  const [video, setVideo] = useState<CaseVideoInput | null>(() => initialCase?.video ? {
+    source: initialCase.video.source,
+    url: initialCase.video.url,
+    storagePath: initialCase.video.storagePath,
+    youtubeId: initialCase.video.youtubeId,
+    title: initialCase.video.title ?? '',
+  } : null);
   const [status, setStatus] = useState<CaseStatus>(initialCase?.status ?? 'draft');
   const [verified, setVerified] = useState(initialCase?.verified ?? true);
   const [submitting, setSubmitting] = useState(false);
@@ -532,6 +544,41 @@ function CaseForm({ mode, categories, priorities, initialCase, onSaved, onCancel
     });
   };
 
+  const pickVideo = async () => {
+    setError('');
+    if (Platform.OS !== 'web') {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        setError('Hãy cho phép ứng dụng truy cập thư viện để chọn video.');
+        return;
+      }
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['videos'],
+      allowsMultipleSelection: false,
+      quality: 1,
+      videoMaxDuration: 600,
+    });
+    if (result.canceled || !result.assets[0]) return;
+    const asset = result.assets[0];
+    if (asset.fileSize && asset.fileSize > 100 * 1024 * 1024) {
+      setError(`Video ${asset.fileName || 'đã chọn'} phải có dung lượng không quá 100 MB.`);
+      return;
+    }
+    if (asset.mimeType && !['video/mp4', 'video/webm', 'video/quicktime'].includes(asset.mimeType)) {
+      setError('Chỉ chấp nhận video MP4, WebM hoặc MOV.');
+      return;
+    }
+    setVideo({
+      source: 'upload',
+      url: asset.uri,
+      title: video?.title ?? '',
+      asset,
+    });
+  };
+
+  const videoPreview = useMemo(() => normalizeCaseVideo(video), [video]);
+
   const submit = async () => {
     if (!valid) {
       setError('Hãy nhập đầy đủ các trường bắt buộc và chọn ảnh.');
@@ -554,6 +601,7 @@ function CaseForm({ mode, categories, priorities, initialCase, onSaved, onCancel
         story,
         images,
         coverImageId,
+        video,
         priority,
         updated: 'Vừa cập nhật',
         progress: Number(progress) || 0,
@@ -593,6 +641,7 @@ function CaseForm({ mode, categories, priorities, initialCase, onSaved, onCancel
       {editing && canManageMoney && <Field grid label="Tổng tiền đã nhận hỗ trợ"><TextInput value={receivedAmount} onChangeText={(value) => setReceivedAmount(formatMoneyInput(value))} keyboardType="number-pad" placeholder="0" style={styles.input} /><Text style={styles.moneyPreview}>{formatMoney(normalizeMoney(receivedAmount) ?? 0)}</Text></Field>}
     </View>
     <ImageManager images={images} coverImageId={coverImageId} onPick={pickImages} onCover={setCoverImageId} onUpdate={updateImage} onRemove={removeImage} onMove={moveImage} />
+    <VideoManager video={video} preview={videoPreview} onChange={setVideo} onPick={pickVideo} />
     <View style={styles.optionRow}><Pressable onPress={() => setVerified(!verified)} style={[styles.checkOption, verified && styles.checkOptionActive]}><Text style={[styles.checkText, verified && styles.checkTextActive]}>{verified ? '✓ ' : ''}Đã xác minh thông tin</Text></Pressable></View>
     <ChoiceField label="Trạng thái khi lưu" values={['draft', 'published']} labels={['Lưu bản nháp', 'Xuất bản công khai']} selected={status} onSelect={(value) => setStatus(value as CaseStatus)} />
     {status === 'published' && <Text style={styles.publishNotice}>Hồ sơ sẽ xuất hiện trên Web, iOS và Android ngay sau khi lưu.</Text>}
@@ -615,6 +664,36 @@ function ImageManager({ images, coverImageId, onPick, onCover, onUpdate, onRemov
         <View style={styles.imageCardActions}><Pressable disabled={index === 0} onPress={() => onMove(entry.id, -1)} style={[styles.orderButton, index === 0 && styles.disabled]}><Text style={styles.orderButtonText}>←</Text></Pressable><Pressable disabled={index === images.length - 1} onPress={() => onMove(entry.id, 1)} style={[styles.orderButton, index === images.length - 1 && styles.disabled]}><Text style={styles.orderButtonText}>→</Text></Pressable><Pressable onPress={() => onRemove(entry.id)} style={styles.removeImageButton}><Text style={styles.removeImageText}>Xóa ảnh</Text></Pressable></View>
       </View>;
     })}</View>}
+  </View>;
+}
+
+function VideoManager({ video, preview, onChange, onPick }: { video: CaseVideoInput | null; preview: CaseVideo | null; onChange: (value: CaseVideoInput | null) => void; onPick: () => Promise<void> }) {
+  const source = video?.source ?? 'none';
+  const selectSource = (next: 'none' | 'upload' | 'youtube') => {
+    if (next === 'none') {
+      onChange(null);
+      return;
+    }
+    if (video?.source === next) return;
+    onChange({ source: next, title: video?.title ?? '' });
+  };
+
+  return <View style={styles.videoManager}>
+    <View style={styles.galleryHeader}><View style={styles.videoHeading}><Text style={styles.fieldLabel}>Video hoàn cảnh (không bắt buộc)</Text><Text style={styles.galleryHelp}>Tải một video MP4, WebM hoặc MOV tối đa 100 MB, hoặc nhập liên kết YouTube.</Text></View></View>
+    <View style={styles.videoSourceChoices}>
+      {([
+        ['none', 'Không dùng video'],
+        ['upload', 'Tải video trực tiếp'],
+        ['youtube', 'Liên kết YouTube'],
+      ] as const).map(([value, label]) => <Pressable key={value} onPress={() => selectSource(value)} style={[styles.choice, source === value && styles.choiceActive]}><Text style={[styles.choiceText, source === value && styles.choiceTextActive]}>{source === value ? '✓ ' : ''}{label}</Text></Pressable>)}
+    </View>
+    {source === 'upload' && <>
+      <Pressable onPress={onPick} style={styles.videoUploadButton}><Text style={styles.videoUploadButtonText}>{video?.asset || video?.url ? '↻ Chọn video khác' : '＋ Chọn video từ thiết bị'}</Text></Pressable>
+      <Text style={styles.videoFileName}>{video?.asset?.fileName || (video?.url ? 'Video hiện đang được lưu trong hồ sơ.' : 'Chưa chọn video.')}</Text>
+    </>}
+    {source === 'youtube' && <TextInput value={video?.url ?? ''} onChangeText={(url) => onChange({ source: 'youtube', url, title: video?.title ?? '' })} autoCapitalize="none" autoCorrect={false} keyboardType="url" placeholder="Ví dụ: https://www.youtube.com/watch?v=..." style={styles.input} />}
+    {source !== 'none' && <TextInput value={video?.title ?? ''} onChangeText={(title) => onChange({ ...video!, title })} placeholder="Tiêu đề video (không bắt buộc)" style={[styles.input, styles.videoTitleInput]} />}
+    {source !== 'none' && preview ? <View style={styles.videoPreview}><Text style={styles.videoPreviewLabel}>Xem trước video</Text><CaseVideoPlayer video={preview} /></View> : source === 'youtube' && <Text style={styles.videoInvalidText}>Nhập đúng liên kết YouTube để xem trước video.</Text>}
   </View>;
 }
 
@@ -812,6 +891,16 @@ const styles = StyleSheet.create<any>({
   galleryManager: { borderWidth: 1, borderColor: Colors.line, borderRadius: 16, padding: 16, marginBottom: 18, backgroundColor: Colors.primaryMist },
   galleryHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 14 },
   galleryHelp: { color: Colors.muted, fontSize: 10, marginTop: 4 },
+  videoManager: { borderWidth: 1, borderColor: Colors.line, borderRadius: 16, padding: 16, marginBottom: 18, backgroundColor: Colors.purpleSoft },
+  videoHeading: { flexGrow: 1, flexShrink: 1, minWidth: 0 },
+  videoSourceChoices: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 13 },
+  videoUploadButton: { alignSelf: 'flex-start', backgroundColor: Colors.primary, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11 },
+  videoUploadButtonText: { color: '#fff', fontSize: 10, fontWeight: '900' },
+  videoFileName: { color: Colors.muted, fontSize: 10, marginTop: 8, marginBottom: 12 },
+  videoTitleInput: { marginTop: 10 },
+  videoPreview: { width: '100%', maxWidth: 720, marginTop: 14 },
+  videoPreviewLabel: { color: Colors.ink, fontSize: 11, fontWeight: '900', marginBottom: 8 },
+  videoInvalidText: { color: Colors.orange, fontSize: 10, lineHeight: 16, marginTop: 10 },
   imagePlaceholderWide: { minHeight: 120, borderRadius: 14, borderWidth: 1, borderStyle: 'dashed', borderColor: Colors.line, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.paper },
   adminGalleryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   adminImageCard: { width: 270, maxWidth: '100%', backgroundColor: Colors.paper, borderWidth: 1, borderColor: Colors.line, borderRadius: 14, padding: 10 },

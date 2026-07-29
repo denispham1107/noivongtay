@@ -9,7 +9,16 @@ service firebase.storage {
       return request.resource.size < 5 * 1024 * 1024
         && request.resource.contentType.matches('image/(jpeg|png|webp)');
     }
+    function validVideo() {
+      return request.resource.size <= 100 * 1024 * 1024
+        && request.resource.contentType.matches('video/(mp4|webm|quicktime)');
+    }
 
+    match /public/cases/{caseId}/videos/{fileName} {
+      allow read: if true;
+      allow create, update: if isEditorial() && validVideo();
+      allow delete: if isEditorial();
+    }
     match /public/cases/{caseId}/{fileName} {
       allow read: if true;
       allow create, update: if isEditorial() && validImage();
