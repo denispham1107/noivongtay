@@ -10,6 +10,7 @@ export type CaseImage = {
 export type CaseVideo = {
   source: 'upload' | 'youtube';
   url: string;
+  enabled?: boolean;
   storagePath?: string;
   youtubeId?: string;
   title?: string;

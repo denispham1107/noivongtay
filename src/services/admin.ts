@@ -37,6 +37,7 @@ export type CaseImageInput = {
 
 export type CaseVideoInput = {
   source: 'upload' | 'youtube';
+  enabled?: boolean;
   url?: string;
   storagePath?: string;
   youtubeId?: string;
@@ -123,21 +124,29 @@ async function prepareVideo(caseId: string, input: CaseVideoInput | null): Promi
   if (!input) return null;
   if (input.source === 'youtube') {
     const youtubeId = getYouTubeId(input.youtubeId || input.url || '');
-    if (!youtubeId) throw new Error('Liên kết YouTube không hợp lệ.');
+    if (!youtubeId) {
+      if (input.enabled === false) return null;
+      throw new Error('Liên kết YouTube không hợp lệ.');
+    }
     return {
       source: 'youtube',
       youtubeId,
       url: `https://www.youtube.com/watch?v=${youtubeId}`,
+      enabled: input.enabled !== false,
       title: input.title.trim(),
     };
   }
 
   const uploaded = input.asset ? await uploadCaseVideo(caseId, input.asset) : null;
   const url = uploaded?.url || input.url?.trim();
-  if (!url) throw new Error('Hãy chọn video muốn tải lên.');
+  if (!url) {
+    if (input.enabled === false) return null;
+    throw new Error('Hãy chọn video muốn tải lên.');
+  }
   const video: CaseVideo = {
     source: 'upload',
     url,
+    enabled: input.enabled !== false,
     title: input.title.trim(),
   };
   const storagePath = uploaded?.storagePath || input.storagePath;
@@ -204,7 +213,7 @@ export async function updateCharityCase(caseId: string, input: NewCharityCase) {
     images: currentData.images,
     coverImageId: currentData.coverImageId,
   });
-  const previousVideo = normalizeCaseVideo(currentData.video);
+  const previousVideo = normalizeCaseVideo(currentData.video, true);
   const [images, video] = await Promise.all([prepareImages(caseId, input.images), prepareVideo(caseId, input.video)]);
   const data = buildCaseData(input, images, video);
 
@@ -226,6 +235,28 @@ export async function updateCharityCase(caseId: string, input: NewCharityCase) {
   ]);
 }
 
+export async function deleteCharityCaseVideo(caseId: string) {
+  const currentUser = await requireEditorialUser('xóa video khỏi');
+  const caseRef = doc(db, 'charityCases', caseId);
+  const currentSnapshot = await getDoc(caseRef);
+  if (!currentSnapshot.exists()) throw new Error('Hồ sơ không còn tồn tại hoặc đã bị xóa.');
+
+  const video = normalizeCaseVideo(currentSnapshot.data().video, true);
+  if (video?.source === 'upload' && video.storagePath) {
+    try {
+      await deleteObject(ref(storage, video.storagePath));
+    } catch (reason) {
+      if ((reason as { code?: string })?.code !== 'storage/object-not-found') throw reason;
+    }
+  }
+
+  await updateDoc(caseRef, {
+    video: null,
+    updatedBy: currentUser.uid,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 function toAdminCase(id: string, data: DocumentData): AdminCase {
   const base = {
     id,
@@ -237,7 +268,7 @@ function toAdminCase(id: string, data: DocumentData): AdminCase {
     image: data.image ?? '',
     images: data.images,
     coverImageId: data.coverImageId,
-    video: normalizeCaseVideo(data.video),
+    video: normalizeCaseVideo(data.video, true),
     priority: data.priority ?? 'Đang cần hỗ trợ',
     updated: data.updated ?? 'Vừa cập nhật',
     progress: Number(data.progress ?? 0),

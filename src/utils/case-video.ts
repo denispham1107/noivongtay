@@ -31,9 +31,11 @@ export function getYouTubeEmbedUrl(value: string) {
   return id ? `https://www.youtube-nocookie.com/embed/${id}?playsinline=1&rel=0` : '';
 }
 
-export function normalizeCaseVideo(value: unknown): CaseVideo | null {
+export function normalizeCaseVideo(value: unknown, includeDisabled = false): CaseVideo | null {
   if (!value || typeof value !== 'object') return null;
   const candidate = value as Partial<CaseVideo>;
+  const enabled = candidate.enabled !== false;
+  if (!enabled && !includeDisabled) return null;
   if (candidate.source === 'youtube') {
     const youtubeId = getYouTubeId(candidate.youtubeId || candidate.url || '');
     if (!youtubeId) return null;
@@ -41,6 +43,7 @@ export function normalizeCaseVideo(value: unknown): CaseVideo | null {
       source: 'youtube',
       youtubeId,
       url: `https://www.youtube.com/watch?v=${youtubeId}`,
+      enabled,
       title: candidate.title?.trim() || '',
     };
   }
@@ -48,6 +51,7 @@ export function normalizeCaseVideo(value: unknown): CaseVideo | null {
     return {
       source: 'upload',
       url: candidate.url.trim(),
+      enabled,
       storagePath: candidate.storagePath,
       title: candidate.title?.trim() || '',
     };
