@@ -11,7 +11,7 @@ export function BrandMark({ compact = false }: { compact?: boolean }) {
       </View>
       <View style={[styles.copy, compact && styles.copyCompact]}>
         <Text adjustsFontSizeToFit minimumFontScale={0.8} numberOfLines={1} style={[styles.name, compact && styles.nameCompact]}>Nối Vòng Tay</Text>
-        <Text style={[styles.tagline, compact && styles.taglineCompact]}>Chạm yêu thương · Gieo hy vọng</Text>
+        <Text numberOfLines={1} style={[styles.tagline, compact && styles.taglineCompact]}>Chạm yêu thương · Gieo hy vọng</Text>
       </View>
     </View>
   );

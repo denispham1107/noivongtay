@@ -10,7 +10,7 @@ import { BrandMark } from './brand-mark';
 
 export function PublicHeader() {
   const { width } = useWindowDimensions();
-  const desktop = width >= 760;
+  const desktop = width >= 1100;
   const compactMobile = width < 430;
   const stackedMobile = width < 360;
   const [accountName, setAccountName] = useState('');
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   inner: { width: '100%', maxWidth: 1180, alignSelf: 'center', minHeight: 76, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
   innerCompact: { minHeight: 68, paddingHorizontal: 8, gap: 5 },
   innerStacked: { flexWrap: 'wrap', paddingVertical: 9, gap: 8 },
-  brandButton: { flexShrink: 1, minWidth: 0 },
+  brandButton: { flexShrink: 0, minWidth: 0 },
   brandButtonStacked: { width: '100%', flexBasis: '100%', flexShrink: 0 },
   nav: { flexDirection: 'row', alignItems: 'center', gap: 26 },
   navText: { fontSize: 14, fontWeight: '600', color: Colors.muted },
