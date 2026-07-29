@@ -1,6 +1,8 @@
 import type { CaseVideo } from '@/data/cases';
 
 const YOUTUBE_ID = /^[a-zA-Z0-9_-]{11}$/;
+export const YOUTUBE_EMBED_ORIGIN = 'https://denispham1107.github.io';
+export const YOUTUBE_EMBED_REFERRER = `${YOUTUBE_EMBED_ORIGIN}/noivongtay/`;
 
 export function getYouTubeId(value: string) {
   const input = value.trim();
@@ -28,7 +30,15 @@ export function getYouTubeId(value: string) {
 
 export function getYouTubeEmbedUrl(value: string) {
   const id = getYouTubeId(value);
-  return id ? `https://www.youtube-nocookie.com/embed/${id}?playsinline=1&rel=0` : '';
+  if (!id) return '';
+
+  const params = new URLSearchParams({
+    playsinline: '1',
+    rel: '0',
+    origin: YOUTUBE_EMBED_ORIGIN,
+    widget_referrer: YOUTUBE_EMBED_REFERRER,
+  });
+  return `https://www.youtube.com/embed/${id}?${params.toString()}`;
 }
 
 export function normalizeCaseVideo(value: unknown, includeDisabled = false): CaseVideo | null {
