@@ -175,6 +175,7 @@ function buildCaseData(input: NewCharityCase, images: CaseImage[], video: CaseVi
     images,
     coverImageId: cover.id,
     video,
+    youtubeUrlDraft: input.youtubeUrlDraft?.trim() || '',
     priority: input.priority,
     updated: 'Vừa cập nhật',
     progress: Math.max(0, Math.min(100, Math.round(input.progress))),
@@ -257,6 +258,21 @@ export async function deleteCharityCaseVideo(caseId: string) {
   });
 }
 
+export async function deleteCharityCaseYoutubeLink(caseId: string) {
+  const currentUser = await requireEditorialUser('xóa liên kết YouTube khỏi');
+  const caseRef = doc(db, 'charityCases', caseId);
+  const currentSnapshot = await getDoc(caseRef);
+  if (!currentSnapshot.exists()) throw new Error('Hồ sơ không còn tồn tại hoặc đã bị xóa.');
+
+  const currentVideo = normalizeCaseVideo(currentSnapshot.data().video, true);
+  await updateDoc(caseRef, {
+    youtubeUrlDraft: '',
+    ...(currentVideo?.source === 'youtube' ? { video: null } : {}),
+    updatedBy: currentUser.uid,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 function toAdminCase(id: string, data: DocumentData): AdminCase {
   const base = {
     id,
@@ -269,6 +285,7 @@ function toAdminCase(id: string, data: DocumentData): AdminCase {
     images: data.images,
     coverImageId: data.coverImageId,
     video: normalizeCaseVideo(data.video, true),
+    youtubeUrlDraft: typeof data.youtubeUrlDraft === 'string' ? data.youtubeUrlDraft : '',
     priority: data.priority ?? 'Đang cần hỗ trợ',
     updated: data.updated ?? 'Vừa cập nhật',
     progress: Number(data.progress ?? 0),

@@ -27,6 +27,7 @@ export type CharityCase = {
   images?: CaseImage[];
   coverImageId?: string;
   video?: CaseVideo | null;
+  youtubeUrlDraft?: string;
   priority: string;
   updated: string;
   progress: number;

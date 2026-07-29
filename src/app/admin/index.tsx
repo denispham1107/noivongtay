@@ -25,6 +25,7 @@ import type { CaseVideo } from '@/data/cases';
 import {
   createCharityCase,
   deleteCharityCaseVideo,
+  deleteCharityCaseYoutubeLink,
   getAdminCases,
   isAdminRole,
   updateCharityCase,
@@ -483,6 +484,9 @@ function CaseForm({ mode, categories, priorities, initialCase, onSaved, onCancel
     youtubeId: initialCase.video.youtubeId,
     title: initialCase.video.title ?? '',
   } : null);
+  const [youtubeUrlDraft, setYoutubeUrlDraft] = useState(
+    initialCase?.youtubeUrlDraft || (initialCase?.video?.source === 'youtube' ? initialCase.video.url : ''),
+  );
   const [status, setStatus] = useState<CaseStatus>(initialCase?.status ?? 'draft');
   const [verified, setVerified] = useState(initialCase?.verified ?? true);
   const [submitting, setSubmitting] = useState(false);
@@ -585,14 +589,23 @@ function CaseForm({ mode, categories, priorities, initialCase, onSaved, onCancel
     setError('');
     setSuccess('');
     try {
-      const persistedVideo = editing && initialCase?.video && !video?.asset;
-      if (persistedVideo && initialCase) await deleteCharityCaseVideo(initialCase.id);
+      const deletingYoutube = video?.source === 'youtube';
+      const persistedUpload = editing && initialCase && video?.source === 'upload' && !!video.storagePath && !video.asset;
+      const persistedYoutube = editing && initialCase && deletingYoutube
+        && !!(initialCase.youtubeUrlDraft || initialCase.video?.source === 'youtube');
+      if (persistedUpload) await deleteCharityCaseVideo(initialCase.id);
+      if (persistedYoutube) await deleteCharityCaseYoutubeLink(initialCase.id);
+      if (deletingYoutube) setYoutubeUrlDraft('');
       setVideo(null);
-      setSuccess(persistedVideo
-        ? initialCase?.video?.source === 'upload'
+      setSuccess(
+        persistedUpload
           ? 'Đã xóa video khỏi hồ sơ và Firebase Storage.'
-          : 'Đã xóa liên kết YouTube khỏi hồ sơ.'
-        : 'Đã bỏ video chưa lưu.');
+          : persistedYoutube
+            ? 'Đã xóa liên kết YouTube khỏi hồ sơ.'
+            : deletingYoutube
+              ? 'Đã bỏ liên kết YouTube chưa lưu.'
+              : 'Đã bỏ video chưa lưu.',
+      );
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Không thể xóa video.');
     }
@@ -621,6 +634,7 @@ function CaseForm({ mode, categories, priorities, initialCase, onSaved, onCancel
         images,
         coverImageId,
         video,
+        youtubeUrlDraft,
         priority,
         updated: 'Vừa cập nhật',
         progress: Number(progress) || 0,
@@ -660,7 +674,7 @@ function CaseForm({ mode, categories, priorities, initialCase, onSaved, onCancel
       {editing && canManageMoney && <Field grid label="Tổng tiền đã nhận hỗ trợ"><TextInput value={receivedAmount} onChangeText={(value) => setReceivedAmount(formatMoneyInput(value))} keyboardType="number-pad" placeholder="0" style={styles.input} /><Text style={styles.moneyPreview}>{formatMoney(normalizeMoney(receivedAmount) ?? 0)}</Text></Field>}
     </View>
     <ImageManager images={images} coverImageId={coverImageId} onPick={pickImages} onCover={setCoverImageId} onUpdate={updateImage} onRemove={removeImage} onMove={moveImage} />
-    <VideoManager video={video} preview={videoPreview} onChange={setVideo} onPick={pickVideo} onDelete={deleteVideo} />
+    <VideoManager video={video} youtubeUrlDraft={youtubeUrlDraft} preview={videoPreview} onChange={setVideo} onYoutubeUrlChange={setYoutubeUrlDraft} onPick={pickVideo} onDelete={deleteVideo} />
     <View style={styles.optionRow}><Pressable onPress={() => setVerified(!verified)} style={[styles.checkOption, verified && styles.checkOptionActive]}><Text style={[styles.checkText, verified && styles.checkTextActive]}>{verified ? '✓ ' : ''}Đã xác minh thông tin</Text></Pressable></View>
     <ChoiceField label="Trạng thái khi lưu" values={['draft', 'published']} labels={['Lưu bản nháp', 'Xuất bản công khai']} selected={status} onSelect={(value) => setStatus(value as CaseStatus)} />
     {status === 'published' && <Text style={styles.publishNotice}>Hồ sơ sẽ xuất hiện trên Web, iOS và Android ngay sau khi lưu.</Text>}
@@ -686,7 +700,7 @@ function ImageManager({ images, coverImageId, onPick, onCover, onUpdate, onRemov
   </View>;
 }
 
-function VideoManager({ video, preview, onChange, onPick, onDelete }: { video: CaseVideoInput | null; preview: CaseVideo | null; onChange: (value: CaseVideoInput | null) => void; onPick: () => Promise<void>; onDelete: () => Promise<void> }) {
+function VideoManager({ video, youtubeUrlDraft, preview, onChange, onYoutubeUrlChange, onPick, onDelete }: { video: CaseVideoInput | null; youtubeUrlDraft: string; preview: CaseVideo | null; onChange: (value: CaseVideoInput | null) => void; onYoutubeUrlChange: (value: string) => void; onPick: () => Promise<void>; onDelete: () => Promise<void> }) {
   const [deleting, setDeleting] = useState(false);
   const source = video?.enabled === false ? 'none' : video?.source ?? 'none';
   const selectSource = (next: 'none' | 'upload' | 'youtube') => {
@@ -695,10 +709,10 @@ function VideoManager({ video, preview, onChange, onPick, onDelete }: { video: C
       return;
     }
     if (video?.source === next) {
-      onChange({ ...video, enabled: true });
+      onChange({ ...video, enabled: true, ...(next === 'youtube' ? { url: youtubeUrlDraft } : {}) });
       return;
     }
-    onChange({ source: next, enabled: true, title: video?.title ?? '' });
+    onChange({ source: next, enabled: true, title: video?.title ?? '', ...(next === 'youtube' ? { url: youtubeUrlDraft } : {}) });
   };
   const removePermanently = async () => {
     setDeleting(true);
@@ -722,7 +736,7 @@ function VideoManager({ video, preview, onChange, onPick, onDelete }: { video: C
       <Pressable onPress={onPick} style={styles.videoUploadButton}><Text style={styles.videoUploadButtonText}>{video?.asset || video?.url ? '↻ Chọn video khác' : '＋ Chọn video từ thiết bị'}</Text></Pressable>
       <Text style={styles.videoFileName}>{video?.asset?.fileName || (video?.url ? 'Video hiện đang được lưu trong hồ sơ.' : 'Chưa chọn video.')}</Text>
     </>}
-    {source === 'youtube' && <TextInput value={video?.url ?? ''} onChangeText={(url) => onChange({ source: 'youtube', enabled: true, url, title: video?.title ?? '' })} autoCapitalize="none" autoCorrect={false} keyboardType="url" placeholder="Ví dụ: https://www.youtube.com/watch?v=..." style={styles.input} />}
+    {source === 'youtube' && <TextInput value={youtubeUrlDraft} onChangeText={(url) => { onYoutubeUrlChange(url); onChange({ source: 'youtube', enabled: true, url, title: video?.title ?? '' }); }} autoCapitalize="none" autoCorrect={false} keyboardType="url" placeholder="Ví dụ: https://www.youtube.com/watch?v=..." style={styles.input} />}
     {source !== 'none' && <TextInput value={video?.title ?? ''} onChangeText={(title) => onChange({ ...video!, title })} placeholder="Tiêu đề video (không bắt buộc)" style={[styles.input, styles.videoTitleInput]} />}
     {source !== 'none' && preview ? <View style={styles.videoPreview}><Text style={styles.videoPreviewLabel}>Xem trước video</Text><CaseVideoPlayer video={preview} /></View> : source === 'youtube' && <Text style={styles.videoInvalidText}>Nhập đúng liên kết YouTube để xem trước video.</Text>}
     {source === 'none' && video?.source === 'youtube' && <Text style={styles.videoRetainedText}>Liên kết YouTube vẫn được giữ lại nhưng đang không hiển thị. Chọn “Liên kết YouTube” để dùng lại.</Text>}
