@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onIdTokenChanged } from 'firebase/auth';
 import { useEffect, useState } from 'react';
 import { Platform, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { Colors } from '@/constants/brand';
 import { Text } from '@/components/fixed-text';
+import { isAdminRole } from '@/services/admin';
 import { auth } from '@/services/firebase';
 import { BrandMark } from './brand-mark';
 
@@ -14,8 +15,29 @@ export function PublicHeader() {
   const compactMobile = width < 430;
   const stackedMobile = width < 360;
   const [accountName, setAccountName] = useState('');
+  const [canAccessAdmin, setCanAccessAdmin] = useState(false);
 
-  useEffect(() => onAuthStateChanged(auth, (user) => setAccountName(user?.displayName || user?.email || '')), []);
+  useEffect(() => {
+    let active = true;
+    const unsubscribe = onIdTokenChanged(auth, async (user) => {
+      if (!active) return;
+      setAccountName(user?.displayName || user?.email || '');
+      setCanAccessAdmin(false);
+      if (!user) return;
+
+      try {
+        const token = await user.getIdTokenResult();
+        if (active && auth.currentUser?.uid === user.uid) setCanAccessAdmin(isAdminRole(token.claims.role));
+      } catch {
+        if (active) setCanAccessAdmin(false);
+      }
+    });
+
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, []);
 
   return (
     <View style={styles.shell}>
@@ -29,7 +51,7 @@ export function PublicHeader() {
             <NavItem label="Về chúng tôi" />
           </View>
         )}
-        <View style={[styles.actions, compactMobile && styles.actionsCompact, stackedMobile && styles.actionsStacked]}><Pressable style={[styles.accountButton, compactMobile && styles.actionButtonCompact, stackedMobile && styles.actionButtonStacked]} onPress={() => router.push('/account')}><Text style={[styles.accountIcon, compactMobile && styles.actionIconCompact]}>♡</Text><Text numberOfLines={1} style={[styles.accountText, compactMobile && styles.accountTextCompact]}>{accountName ? (desktop ? accountName : 'Tài khoản') : 'Đăng nhập'}</Text></Pressable><Pressable style={[styles.adminButton, compactMobile && styles.actionButtonCompact, stackedMobile && styles.actionButtonStacked]} onPress={() => router.push('/admin')}><Text style={[styles.adminIcon, compactMobile && styles.actionIconCompact]}>♙</Text><Text numberOfLines={1} style={[styles.adminText, compactMobile && styles.adminTextCompact]}>{desktop ? 'Trang quản trị' : 'Admin'}</Text></Pressable></View>
+        <View style={[styles.actions, compactMobile && styles.actionsCompact, stackedMobile && styles.actionsStacked]}><Pressable style={[styles.accountButton, compactMobile && styles.actionButtonCompact, stackedMobile && styles.actionButtonStacked]} onPress={() => router.push('/account')}><Text style={[styles.accountIcon, compactMobile && styles.actionIconCompact]}>♡</Text><Text numberOfLines={1} style={[styles.accountText, compactMobile && styles.accountTextCompact]}>{accountName ? (desktop ? accountName : 'Tài khoản') : 'Đăng nhập'}</Text></Pressable>{canAccessAdmin && <Pressable style={[styles.adminButton, compactMobile && styles.actionButtonCompact, stackedMobile && styles.actionButtonStacked]} onPress={() => router.push('/admin')}><Text style={[styles.adminIcon, compactMobile && styles.actionIconCompact]}>♙</Text><Text numberOfLines={1} style={[styles.adminText, compactMobile && styles.adminTextCompact]}>{desktop ? 'Trang quản trị' : 'Admin'}</Text></Pressable>}</View>
       </View>
     </View>
   );
