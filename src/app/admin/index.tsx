@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -55,7 +55,12 @@ function createImageId(index: number) {
   return `image-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export default function AdminPage() {
+type AdminPageProps = {
+  caseId?: string;
+  initialView?: 'overview' | 'records' | 'setup' | 'users';
+};
+
+export function AdminPage({ caseId, initialView = 'overview' }: AdminPageProps) {
   const [checking, setChecking] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<AdminRole | null>(null);
@@ -86,7 +91,15 @@ export default function AdminPage() {
   if (checking) return <LoadingScreen />;
   if (!isFirebaseConfigured) return <MessageScreen title="Chưa có cấu hình Firebase" text="Hãy kiểm tra tệp .env rồi khởi động lại Expo." />;
   if (!user || !role) return <LoginScreen currentUser={user} accessError={accessError} />;
-  return <AdminDashboard user={user} role={role} />;
+  return <AdminDashboard user={user} role={role} caseId={caseId} initialView={initialView} />;
+}
+
+export default function AdminIndexRoute() {
+  const { view } = useLocalSearchParams<{ view?: string }>();
+  const initialView = view === 'records' || view === 'setup' || view === 'users'
+    ? view
+    : 'overview';
+  return <AdminPage key={initialView} initialView={initialView} />;
 }
 
 function LoadingScreen() {
@@ -147,12 +160,18 @@ function LoginScreen({ currentUser, accessError }: { currentUser: User | null; a
   </SafeAreaView>;
 }
 
-function AdminDashboard({ user, role }: { user: User; role: AdminRole }) {
+function AdminDashboard({ user, role, caseId, initialView }: { user: User; role: AdminRole; caseId?: string; initialView: NonNullable<AdminPageProps['initialView']> }) {
   const { width } = useWindowDimensions();
   const desktop = width >= 900;
   const compact = width < 480;
-  const [section, setSection] = useState<Section>('Tổng quan');
-  const [showForm, setShowForm] = useState(false);
+  const [section, setSection] = useState<Section>(
+    caseId || initialView === 'records' || initialView === 'setup'
+      ? 'Hoàn cảnh'
+      : initialView === 'users'
+        ? 'Người dùng'
+        : 'Tổng quan',
+  );
+  const [showForm, setShowForm] = useState(initialView === 'setup');
   const [cases, setCases] = useState<AdminCase[]>([]);
   const [categoryOptions, setCategoryOptions] = useState<CaseCategory[]>([]);
   const [priorityOptions, setPriorityOptions] = useState<CasePriority[]>([]);
@@ -177,6 +196,14 @@ function AdminDashboard({ user, role }: { user: User; role: AdminRole }) {
   useEffect(() => { void refresh(); }, [refresh]);
   const published = cases.filter((item) => item.status === 'published').length;
   const drafts = cases.length - published;
+  const changeSection = (nextSection: Section) => {
+    if (caseId) {
+      const view = nextSection === 'Hoàn cảnh' ? 'records' : nextSection === 'Người dùng' ? 'users' : 'overview';
+      router.replace({ pathname: '/admin', params: { view } });
+      return;
+    }
+    setSection(nextSection);
+  };
 
   const openCreate = () => {
     setSection('Hoàn cảnh');
@@ -184,7 +211,7 @@ function AdminDashboard({ user, role }: { user: User; role: AdminRole }) {
   };
 
   return <SafeAreaView style={styles.safe} edges={['top']}><View style={styles.app}>
-    {desktop && <Sidebar section={section} setSection={setSection} count={cases.length} role={role} />}
+    {desktop && <Sidebar section={section} setSection={changeSection} count={cases.length} role={role} />}
     <View style={styles.main}>
       <View style={[styles.topbar, compact && styles.topbarCompact]}>
         {!desktop && <BrandMark compact />}
@@ -196,9 +223,9 @@ function AdminDashboard({ user, role }: { user: User; role: AdminRole }) {
           await signOut(auth);
         }}><Text style={styles.signOutText}>Đăng xuất</Text></Pressable>
       </View>
-      {!desktop && <View style={[styles.mobileNav, compact && styles.mobileNavCompact]}>{adminSections(role).map((item) => <Pressable key={item} onPress={() => setSection(item)} style={[styles.mobilePill, compact && styles.mobilePillCompact, section === item && styles.mobilePillActive]}><Text style={[styles.mobilePillText, section === item && styles.mobilePillTextActive]}>{item}</Text></Pressable>)}</View>}
+      {!desktop && <View style={[styles.mobileNav, compact && styles.mobileNavCompact]}>{adminSections(role).map((item) => <Pressable key={item} onPress={() => changeSection(item)} style={[styles.mobilePill, compact && styles.mobilePillCompact, section === item && styles.mobilePillActive]}><Text style={[styles.mobilePillText, section === item && styles.mobilePillTextActive]}>{item}</Text></Pressable>)}</View>}
       <KeyboardAwareScrollView contentContainerStyle={[styles.content, compact && styles.contentCompact]} keyboardShouldPersistTaps="handled">
-        {section === 'Tổng quan' ? <Overview total={cases.length} published={published} drafts={drafts} onCreate={openCreate} /> : section === 'Người dùng' ? <AdminUserManager /> : <CaseManager cases={cases} categories={categoryOptions} priorities={priorityOptions} loading={loadingCases} error={caseError} showForm={showForm} setShowForm={setShowForm} refresh={refresh} canManageMoney={role === 'super_admin' || role === 'admin'} />}
+        {caseId ? <AdminCaseEditor caseId={caseId} cases={cases} categories={categoryOptions} priorities={priorityOptions} loading={loadingCases} error={caseError} refresh={refresh} canManageMoney={role === 'super_admin' || role === 'admin'} /> : section === 'Tổng quan' ? <Overview total={cases.length} published={published} drafts={drafts} onCreate={openCreate} /> : section === 'Người dùng' ? <AdminUserManager /> : <CaseManager cases={cases} categories={categoryOptions} priorities={priorityOptions} loading={loadingCases} error={caseError} showForm={showForm} setShowForm={setShowForm} refresh={refresh} canManageMoney={role === 'super_admin' || role === 'admin'} initialView={initialView === 'setup' ? 'setup' : 'records'} />}
       </KeyboardAwareScrollView>
     </View>
   </View></SafeAreaView>;
@@ -233,27 +260,22 @@ function Guide({ number, title, text }: { number: string; title: string; text: s
   return <View style={styles.guide}><Text style={styles.guideNumber}>{number}</Text><View style={styles.guideCopy}><Text style={styles.guideTitle}>{title}</Text><Text style={styles.guideText}>{text}</Text></View></View>;
 }
 
-function CaseManager({ cases, categories, priorities, loading, error, showForm, setShowForm, refresh, canManageMoney }: { cases: AdminCase[]; categories: CaseCategory[]; priorities: CasePriority[]; loading: boolean; error: string; showForm: boolean; setShowForm: (value: boolean) => void; refresh: () => Promise<void>; canManageMoney: boolean }) {
+function CaseManager({ cases, categories, priorities, loading, error, showForm, setShowForm, refresh, canManageMoney, initialView }: { cases: AdminCase[]; categories: CaseCategory[]; priorities: CasePriority[]; loading: boolean; error: string; showForm: boolean; setShowForm: (value: boolean) => void; refresh: () => Promise<void>; canManageMoney: boolean; initialView: CaseManagerView }) {
   const { width } = useWindowDimensions();
   const compact = width < 430;
-  const [managerView, setManagerView] = useState<CaseManagerView>(showForm ? 'setup' : 'records');
-  const [selectedCase, setSelectedCase] = useState<AdminCase | null>(null);
+  const [managerView, setManagerView] = useState<CaseManagerView>(showForm ? 'setup' : initialView);
 
   const toggleCreateForm = () => {
     setManagerView('setup');
-    setSelectedCase(null);
     setShowForm(!showForm);
   };
 
   const openCase = (item: AdminCase) => {
-    setManagerView('records');
-    setShowForm(false);
-    setSelectedCase(item);
+    router.push(`/admin/cases/${encodeURIComponent(item.id)}` as Href);
   };
 
   const closeForm = () => {
     setShowForm(false);
-    setSelectedCase(null);
   };
 
   const afterSaved = async () => {
@@ -279,10 +301,9 @@ function CaseManager({ cases, categories, priorities, loading, error, showForm, 
         <View style={styles.tableHeader}><View><Text style={styles.panelTitle}>Danh sách hồ sơ</Text><Text style={styles.panelSubtitle}>Nhấn vào một dòng để xem và chỉnh sửa.</Text></View><Pressable onPress={refresh}><Text style={styles.refreshText}>↻ Làm mới</Text></Pressable></View>
         {loading ? <ActivityIndicator style={styles.listLoader} color={Colors.primary} /> : cases.length === 0 ? <Text style={styles.emptyText}>Chưa có hồ sơ nào trong Firestore.</Text> : cases.map((item) => {
           const priorityOption = priorities.find((entry) => entry.name === item.priority);
-          return <Pressable key={item.id} accessibilityRole="button" accessibilityLabel={`Xem và chỉnh sửa hồ sơ ${item.name}`} onPress={() => openCase(item)} style={({ pressed }) => [styles.caseRow, selectedCase?.id === item.id && styles.caseRowSelected, pressed && styles.caseRowPressed]}><Image source={item.image} style={styles.caseThumb} contentFit="cover" /><View style={styles.caseName}><Text style={styles.rowTitle}>{item.name}</Text><Text style={styles.rowSub}>{item.category} · {item.location}</Text></View>{priorityOption && <View style={[styles.status, { backgroundColor: priorityOption.color }]}><Text style={[styles.statusText, { color: priorityTextColor(priorityOption.color) }]}>● {item.priority}</Text></View>}<View style={[styles.status, { backgroundColor: item.status === 'published' ? Colors.greenSoft : Colors.purpleSoft }]}><Text style={[styles.statusText, { color: item.status === 'published' ? Colors.green : Colors.purple }]}>{item.status === 'published' ? 'Đang công khai' : 'Bản nháp'}</Text></View><Text style={styles.rowDate}>{item.updated}</Text><Text style={styles.rowAction}>Xem / Sửa ›</Text></Pressable>;
+          return <Pressable key={item.id} accessibilityRole="button" accessibilityLabel={`Mở trang xem và chỉnh sửa hồ sơ ${item.name}`} onPress={() => openCase(item)} style={({ pressed }) => [styles.caseRow, pressed && styles.caseRowPressed]}><Image source={item.image} style={styles.caseThumb} contentFit="cover" /><View style={styles.caseName}><Text style={styles.rowTitle}>{item.name}</Text><Text style={styles.rowSub}>{item.category} · {item.location}</Text></View>{priorityOption && <View style={[styles.status, { backgroundColor: priorityOption.color }]}><Text style={[styles.statusText, { color: priorityTextColor(priorityOption.color) }]}>● {item.priority}</Text></View>}<View style={[styles.status, { backgroundColor: item.status === 'published' ? Colors.greenSoft : Colors.purpleSoft }]}><Text style={[styles.statusText, { color: item.status === 'published' ? Colors.green : Colors.purple }]}>{item.status === 'published' ? 'Đang công khai' : 'Bản nháp'}</Text></View><Text style={styles.rowDate}>{item.updated}</Text><Text style={styles.rowAction}>Mở trang sửa ›</Text></Pressable>;
         })}
       </View>
-      {selectedCase && <CaseForm key={selectedCase.id} mode="edit" categories={categories} priorities={priorities} initialCase={selectedCase} onSaved={afterSaved} onCancel={closeForm} canManageMoney={canManageMoney} />}
     </> : <>
       <View style={styles.caseSetupIntro}>
         <View style={styles.caseSetupCopy}><Text style={styles.panelTitle}>Tạo hoàn cảnh mới</Text><Text style={styles.panelSubtitle}>Nhập thông tin, hình ảnh và trạng thái xuất bản cho một hồ sơ mới.</Text></View>
@@ -293,6 +314,45 @@ function CaseManager({ cases, categories, priorities, loading, error, showForm, 
       <PriorityManager priorities={priorities} cases={cases} onChanged={refresh} />
     </>}
   </>;
+}
+
+function AdminCaseEditor({ caseId, cases, categories, priorities, loading, error, refresh, canManageMoney }: { caseId: string; cases: AdminCase[]; categories: CaseCategory[]; priorities: CasePriority[]; loading: boolean; error: string; refresh: () => Promise<void>; canManageMoney: boolean }) {
+  const selectedCase = cases.find((item) => item.id === caseId);
+  const backToList = () => router.replace({ pathname: '/admin', params: { view: 'records' } });
+  const afterSaved = async () => {
+    await refresh();
+    backToList();
+  };
+
+  if (loading) return <View style={styles.editorLoading}><ActivityIndicator color={Colors.primary} /><Text style={styles.panelSubtitle}>Đang tải thông tin hồ sơ…</Text></View>;
+
+  if (!selectedCase) {
+    return <View style={styles.formCard}>
+      <Text style={styles.panelTitle}>Không tìm thấy hồ sơ</Text>
+      <Text style={styles.panelSubtitle}>{error || 'Hồ sơ có thể đã bị xóa hoặc bạn không còn quyền truy cập.'}</Text>
+      <Pressable style={styles.editorBackButton} onPress={backToList}><Text style={styles.editorBackButtonText}>← Quay lại danh sách</Text></Pressable>
+    </View>;
+  }
+
+  return <View style={styles.editorPage}>
+    <View style={styles.editorPageHeader}>
+      <View style={styles.editorPageCopy}>
+        <Text style={styles.welcomeTitle}>Chỉnh sửa hồ sơ hoàn cảnh</Text>
+        <Text style={styles.welcomeText}>Toàn bộ thông tin của “{selectedCase.name}” được hiển thị trên trang riêng này.</Text>
+      </View>
+    </View>
+    <CaseForm
+      key={selectedCase.id}
+      mode="edit"
+      categories={categories}
+      priorities={priorities}
+      initialCase={selectedCase}
+      onSaved={afterSaved}
+      onCancel={backToList}
+      cancelLabel="← Quay lại danh sách"
+      canManageMoney={canManageMoney}
+    />
+  </View>;
 }
 
 function CategoryManager({ categories, cases, onChanged }: { categories: CaseCategory[]; cases: AdminCase[]; onChanged: () => Promise<void> }) {
@@ -454,7 +514,7 @@ function PriorityManager({ priorities, cases, onChanged }: { priorities: CasePri
   </View>;
 }
 
-function CaseForm({ mode, categories, priorities, initialCase, onSaved, onCancel, canManageMoney = false }: { mode: 'create' | 'edit'; categories: CaseCategory[]; priorities: CasePriority[]; initialCase?: AdminCase; onSaved: () => Promise<void>; onCancel: () => void; canManageMoney?: boolean }) {
+function CaseForm({ mode, categories, priorities, initialCase, onSaved, onCancel, cancelLabel = 'Đóng', canManageMoney = false }: { mode: 'create' | 'edit'; categories: CaseCategory[]; priorities: CasePriority[]; initialCase?: AdminCase; onSaved: () => Promise<void>; onCancel: () => void; cancelLabel?: string; canManageMoney?: boolean }) {
   const editing = mode === 'edit' && !!initialCase;
   const categoryNames = categories.map((item) => item.name);
   const [name, setName] = useState(initialCase?.name ?? '');
@@ -659,7 +719,7 @@ function CaseForm({ mode, categories, priorities, initialCase, onSaved, onCancel
   };
 
   return <View style={styles.formCard}>
-    <View style={styles.formHeader}><View><Text style={styles.panelTitle}>{editing ? `Xem và chỉnh sửa: ${initialCase?.name}` : 'Thông tin hoàn cảnh mới'}</Text><Text style={styles.panelSubtitle}>{editing ? 'Các thông tin và hình ảnh hiện tại đã được điền sẵn.' : 'Dấu * là trường bắt buộc.'}</Text></View><View style={styles.formHeaderActions}><Text style={styles.secureLabel}>✓ Được bảo vệ bởi Firebase</Text><Pressable style={styles.cancelButton} onPress={onCancel}><Text style={styles.cancelButtonText}>Đóng</Text></Pressable></View></View>
+    <View style={styles.formHeader}><View><Text style={styles.panelTitle}>{editing ? `Xem và chỉnh sửa: ${initialCase?.name}` : 'Thông tin hoàn cảnh mới'}</Text><Text style={styles.panelSubtitle}>{editing ? 'Các thông tin và hình ảnh hiện tại đã được điền sẵn.' : 'Dấu * là trường bắt buộc.'}</Text></View><View style={styles.formHeaderActions}><Text style={styles.secureLabel}>✓ Được bảo vệ bởi Firebase</Text><Pressable style={styles.cancelButton} onPress={onCancel}><Text style={styles.cancelButtonText}>{cancelLabel}</Text></Pressable></View></View>
     <View style={styles.formGrid}>
       <Field grid label="Họ tên hoặc tên hồ sơ *"><TextInput value={name} onChangeText={setName} placeholder="Ví dụ: Bé Minh An" style={styles.input} /></Field>
       <Field grid label="Tỉnh/thành phố *"><TextInput value={location} onChangeText={setLocation} placeholder="Ví dụ: Đồng Nai" style={styles.input} /></Field>
@@ -806,6 +866,12 @@ const styles = StyleSheet.create<any>({
   welcome: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 24 },
   welcomeTitle: { color: Colors.ink, fontSize: 25, fontWeight: '900', letterSpacing: -0.7 },
   welcomeText: { color: Colors.muted, fontSize: 12, marginTop: 6 },
+  editorPage: { width: '100%' },
+  editorPageHeader: { marginBottom: 18 },
+  editorPageCopy: { width: '100%' },
+  editorLoading: { minHeight: 240, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  editorBackButton: { alignSelf: 'flex-start', marginTop: 18, borderWidth: 1, borderColor: Colors.primary, backgroundColor: Colors.paper, borderRadius: 11, paddingHorizontal: 16, paddingVertical: 11 },
+  editorBackButtonText: { color: Colors.primaryDark, fontSize: 11, fontWeight: '900' },
   caseManagerTabs: {
     flexDirection: 'row',
     gap: 10,
