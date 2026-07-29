@@ -7,6 +7,7 @@ import { View } from 'react-native';
 
 import { BrandedLoader } from '@/components/branded-loader';
 import { MobileBottomNavigation } from '@/components/mobile-bottom-navigation';
+import { PortraitOrientationGuard } from '@/components/portrait-orientation-guard';
 import { PushNotificationManager } from '@/components/push-notification-manager';
 
 export default function RootLayout() {
@@ -31,6 +32,7 @@ export default function RootLayout() {
       />
       <PushNotificationManager />
       <MobileBottomNavigation />
+      <PortraitOrientationGuard />
     </View>
   );
 }
