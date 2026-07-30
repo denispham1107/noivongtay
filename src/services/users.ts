@@ -6,7 +6,7 @@ import {
   updateProfile,
   type User,
 } from 'firebase/auth';
-import { collection, doc, getDoc, getDocs, serverTimestamp, setDoc, type DocumentData } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, onSnapshot, serverTimestamp, setDoc, type DocumentData } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 
 import { auth, db, functions } from './firebase';
@@ -96,6 +96,14 @@ function toAppUser(uid: string, data: DocumentData): AppUser {
 export async function getCurrentUserProfile(uid: string) {
   const snapshot = await getDoc(doc(db, 'users', uid));
   return snapshot.exists() ? toAppUser(snapshot.id, snapshot.data()) : null;
+}
+
+export function subscribeUserProfile(uid: string, listener: (profile: AppUser | null) => void) {
+  return onSnapshot(
+    doc(db, 'users', uid),
+    (snapshot) => listener(snapshot.exists() ? toAppUser(snapshot.id, snapshot.data()) : null),
+    () => listener(null),
+  );
 }
 
 export async function getRegisteredUsers() {

@@ -18,7 +18,7 @@ import { auth } from '@/services/firebase';
 import { defaultCasePriorities, priorityTextColor } from '@/services/priorities';
 import { SavedCaseRequiresAuthError, subscribeSavedCases, toggleSavedCase } from '@/services/saved-cases';
 import { getCaseSupportHistory, supportCharityCase, type SupportTransaction } from '@/services/support';
-import { getCurrentUserProfile, type AppUser } from '@/services/users';
+import { subscribeUserProfile, type AppUser } from '@/services/users';
 import { formatMoney, formatMoneyInput, formatSupportDateTime, normalizeMoney } from '@/utils/currency';
 
 export default function CaseDetailScreen() {
@@ -49,9 +49,19 @@ export default function CaseDetailScreen() {
   const [saveFeedback, setSaveFeedback] = useState('');
   const images = item ? getCaseImages(item) : [];
 
-  useEffect(() => onAuthStateChanged(auth, async (currentUser) => {
-    setProfile(currentUser ? await getCurrentUserProfile(currentUser.uid).catch(() => null) : null);
-  }), []);
+  useEffect(() => {
+    let stopProfile: () => void = () => undefined;
+    const stopAuth = onAuthStateChanged(auth, (currentUser) => {
+      stopProfile();
+      setProfile(null);
+      if (currentUser) stopProfile = subscribeUserProfile(currentUser.uid, setProfile);
+    });
+
+    return () => {
+      stopProfile();
+      stopAuth();
+    };
+  }, []);
 
   useEffect(() => subscribeSavedCases((ids) => setSaved(ids.includes(String(id)))), [id]);
 

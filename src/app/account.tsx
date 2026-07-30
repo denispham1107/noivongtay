@@ -11,7 +11,7 @@ import { KeyboardAwareScrollView } from '@/components/keyboard-aware-scroll-view
 import { PasswordInput } from '@/components/password-input';
 import { Colors, Shadows } from '@/constants/brand';
 import { auth } from '@/services/firebase';
-import { getCurrentUserProfile, loginUser, logoutUser, registerUser, type AppUser } from '@/services/users';
+import { getCurrentUserProfile, loginUser, logoutUser, registerUser, subscribeUserProfile, type AppUser } from '@/services/users';
 import { formatMoney } from '@/utils/currency';
 
 type Mode = 'login' | 'register';
@@ -56,11 +56,21 @@ export default function AccountPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => onAuthStateChanged(auth, async (currentUser) => {
-    setUser(currentUser);
-    setProfile(currentUser ? await getCurrentUserProfile(currentUser.uid).catch(() => null) : null);
-    setChecking(false);
-  }), []);
+  useEffect(() => {
+    let stopProfile: () => void = () => undefined;
+    const stopAuth = onAuthStateChanged(auth, (currentUser) => {
+      stopProfile();
+      setUser(currentUser);
+      setProfile(null);
+      if (currentUser) stopProfile = subscribeUserProfile(currentUser.uid, setProfile);
+      setChecking(false);
+    });
+
+    return () => {
+      stopProfile();
+      stopAuth();
+    };
+  }, []);
 
   const submit = async () => {
     if (!email.trim() || !password || (mode === 'register' && (!fullName.trim() || !phone.trim()))) {
