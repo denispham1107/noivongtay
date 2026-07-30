@@ -48,6 +48,11 @@ export async function adjustUserBalance(uid: string, balance: number) {
   return (await call({ uid, balance })).data;
 }
 
+export async function topUpUserBalance(uid: string, amount: number) {
+  const call = httpsCallable<{ uid: string; amount: number }, { balance: number }>(functions, 'topUpUserBalance');
+  return (await call({ uid, amount })).data;
+}
+
 export async function adjustCaseReceivedAmount(caseId: string, receivedAmount: number) {
   const call = httpsCallable<{ caseId: string; receivedAmount: number }, { receivedAmount: number }>(
     functions,

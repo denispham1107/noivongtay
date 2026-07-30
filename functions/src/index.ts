@@ -311,6 +311,63 @@ export const adjustUserBalance = onCall({ region: 'asia-southeast1' }, async (re
   return { balance };
 });
 
+export const topUpUserBalance = onCall({ region: 'asia-southeast1' }, async (request) => {
+  requireAdmin(request);
+  const { uid } = request.data as { uid?: string };
+  const amount = validMoney((request.data as { amount?: unknown }).amount, false);
+  if (!uid) throw new HttpsError('invalid-argument', 'Thiếu UID người dùng.');
+  await requireRegularUser(uid);
+
+  const db = getFirestore();
+  const userRef = db.collection('users').doc(uid);
+  const auditRef = db.collection('auditLogs').doc();
+  const notificationRef = userRef.collection('notifications').doc();
+  let balance = 0;
+
+  await db.runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(userRef);
+    if (!snapshot.exists) throw new HttpsError('not-found', 'Không tìm thấy hồ sơ người dùng.');
+
+    const previousBalance = validMoney(Number(snapshot.get('balance') ?? 0));
+    balance = previousBalance + amount;
+    if (!Number.isSafeInteger(balance) || balance > MAX_MONEY) {
+      throw new HttpsError('invalid-argument', 'Số dư sau khi nạp vượt quá giới hạn cho phép.');
+    }
+
+    transaction.set(userRef, {
+      balance,
+      balanceUpdatedAt: FieldValue.serverTimestamp(),
+      balanceUpdatedBy: request.auth!.uid,
+    }, { merge: true });
+    transaction.set(auditRef, {
+      action: 'registered_user.balance_topped_up',
+      targetId: uid,
+      actorId: request.auth!.uid,
+      previousBalance,
+      amount,
+      balance,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+    transaction.set(notificationRef, {
+      type: 'balance',
+      title: 'Tài khoản vừa được nạp tiền',
+      body: `Tài khoản của bạn đã được cộng thêm ${amount.toLocaleString('en-US')}đ.`,
+      read: false,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+  });
+
+  await sendPushToUser(uid, {
+    title: 'Tài khoản vừa được nạp tiền',
+    body: `Tài khoản của bạn đã được cộng thêm ${amount.toLocaleString('en-US')}đ.`,
+    path: '/account',
+  }).catch((error) => {
+    console.error(`Không thể gửi push notification đến tài khoản ${uid}.`, error);
+  });
+
+  return { balance };
+});
+
 export const supportCharityCase = onCall({ region: 'asia-southeast1' }, async (request) => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Hãy đăng nhập để hỗ trợ hồ sơ.');
   const { caseId } = request.data as { caseId?: string };

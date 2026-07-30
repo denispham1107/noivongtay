@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import { Colors, Shadows } from '@/constants/brand';
 import { Text, TextInput } from '@/components/fixed-text';
-import { adjustUserBalance } from '@/services/support';
+import { adjustUserBalance, topUpUserBalance } from '@/services/support';
 import { deleteRegisteredUser, getRegisteredUsers, updateRegisteredUser, validateRegistration, type AppUser } from '@/services/users';
 import { formatMoney, formatMoneyInput, normalizeMoney } from '@/utils/currency';
 
@@ -15,6 +15,7 @@ export function AdminUserManager() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [balance, setBalance] = useState('0');
+  const [topUpAmount, setTopUpAmount] = useState('');
   const [pendingDelete, setPendingDelete] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -41,6 +42,7 @@ export function AdminUserManager() {
     setPhone(user.phone);
     setEmail(user.email);
     setBalance(formatMoneyInput(user.balance));
+    setTopUpAmount('');
     setPendingDelete('');
     setError('');
     setMessage('');
@@ -51,15 +53,22 @@ export function AdminUserManager() {
     const validationError = validateRegistration({ fullName, phone, email, password: '12345678' });
     if (validationError) return setError(validationError);
     const nextBalance = normalizeMoney(balance);
-    if (nextBalance === null) return setError('Số tiền nạp phải là số nguyên từ 0 trở lên.');
+    const nextTopUpAmount = topUpAmount.trim() ? normalizeMoney(topUpAmount) : 0;
+    if (nextBalance === null) return setError('Số dư điều chỉnh phải là số nguyên từ 0 trở lên.');
+    if (nextTopUpAmount === null) return setError('Số tiền nạp thêm phải là số nguyên từ 0 trở lên.');
+    const balanceAfterSave = nextBalance + nextTopUpAmount;
+    if (normalizeMoney(String(balanceAfterSave)) === null) return setError('Số dư sau khi nạp vượt quá giới hạn cho phép.');
     setSaving(true);
     setError('');
     setMessage('');
     try {
       await updateRegisteredUser(editing.uid, { fullName, phone, email });
-      await adjustUserBalance(editing.uid, nextBalance);
+      if (nextBalance !== editing.balance) await adjustUserBalance(editing.uid, nextBalance);
+      if (nextTopUpAmount > 0) await topUpUserBalance(editing.uid, nextTopUpAmount);
       setEditing(null);
-      setMessage('Đã cập nhật thông tin và số tiền nạp của người dùng.');
+      setMessage(nextTopUpAmount > 0
+        ? `Đã cập nhật người dùng và nạp thêm ${formatMoney(nextTopUpAmount)} vào tài khoản.`
+        : 'Đã cập nhật thông tin và số dư của người dùng.');
       await refresh();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Không thể cập nhật người dùng.');
@@ -94,8 +103,8 @@ export function AdminUserManager() {
   return <>
     <View style={styles.header}><View><Text style={styles.title}>Quản lý người dùng</Text><Text style={styles.subtitle}>Chỉnh sửa thông tin hoặc xóa các tài khoản đã đăng ký.</Text></View><View style={styles.count}><Text style={styles.countValue}>{users.length}</Text><Text style={styles.countLabel}>người dùng</Text></View></View>
     {!!error && <Text style={styles.error}>{error}</Text>}{!!message && <Text style={styles.success}>{message}</Text>}
-    {editing && <View style={styles.editCard}><View style={styles.editHeader}><View><Text style={styles.panelTitle}>Chỉnh sửa: {editing.fullName}</Text><Text style={styles.uid}>UID: {editing.uid}</Text></View><Pressable onPress={() => setEditing(null)} style={styles.cancel}><Text style={styles.cancelText}>Đóng</Text></Pressable></View><View style={styles.formGrid}><Field label="Họ tên"><TextInput value={fullName} onChangeText={setFullName} style={styles.input} /></Field><Field label="Số điện thoại"><TextInput value={phone} onChangeText={setPhone} keyboardType="phone-pad" style={styles.input} /></Field><Field label="Email"><TextInput value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} /></Field><Field label="Số tiền nạp"><TextInput value={balance} onChangeText={(value) => setBalance(formatMoneyInput(value))} keyboardType="number-pad" placeholder="0" style={styles.input} /></Field></View><Text style={styles.balancePreview}>Số dư sau khi lưu: {formatMoney(normalizeMoney(balance) ?? 0)}</Text><Text style={styles.note}>Khi đổi email, địa chỉ đăng nhập Firebase của người dùng cũng được cập nhật. Số tiền nạp không được âm.</Text><Pressable disabled={saving} onPress={save} style={[styles.saveButton, saving && styles.disabled]}>{saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>Lưu thay đổi</Text>}</Pressable></View>}
-    <View style={styles.table}><View style={styles.tableHeader}><View><Text style={styles.panelTitle}>Danh sách người dùng</Text><Text style={styles.rowHint}>Nhấn vào một dòng để xem và chỉnh sửa.</Text></View><Pressable onPress={refresh}><Text style={styles.refresh}>↻ Làm mới</Text></Pressable></View>{loading ? <ActivityIndicator color={Colors.primary} style={styles.loader} /> : users.length === 0 ? <Text style={styles.empty}>Chưa có tài khoản người dùng nào.</Text> : users.map((user) => <Pressable key={user.uid} accessibilityRole="button" accessibilityLabel={`Chỉnh sửa người dùng ${user.fullName || user.email}`} onPress={() => startEdit(user)} style={({ pressed }) => [styles.row, editing?.uid === user.uid && styles.rowActive, pressed && styles.rowPressed]}><View style={styles.avatar}><Text style={styles.avatarText}>{(user.fullName || user.email).slice(0, 1).toUpperCase()}</Text></View><View style={styles.identity}><Text style={styles.name}>{user.fullName || 'Chưa có họ tên'}</Text><Text style={styles.email}>{user.email}</Text><Text style={styles.phone}>{user.phone || 'Chưa có số điện thoại'}</Text></View><View style={styles.balanceBadge}><Text style={styles.balanceBadgeLabel}>Số tiền nạp</Text><Text style={styles.balanceBadgeValue}>{formatMoney(user.balance)}</Text></View><View style={styles.status}><Text style={styles.statusText}>Đang hoạt động</Text></View><View style={styles.actions}><Pressable disabled={saving} onPress={(event) => { event.stopPropagation(); void remove(user); }} style={[styles.deleteButton, pendingDelete === user.uid && styles.deleteConfirm]}><Text style={[styles.deleteText, pendingDelete === user.uid && styles.deleteConfirmText]}>{pendingDelete === user.uid ? 'Xác nhận xóa' : 'Xóa'}</Text></Pressable></View></Pressable>)}</View>
+    {editing && <View style={styles.editCard}><View style={styles.editHeader}><View><Text style={styles.panelTitle}>Chỉnh sửa: {editing.fullName}</Text><Text style={styles.uid}>UID: {editing.uid}</Text></View><Pressable onPress={() => setEditing(null)} style={styles.cancel}><Text style={styles.cancelText}>Đóng</Text></Pressable></View><View style={styles.formGrid}><Field label="Họ tên"><TextInput value={fullName} onChangeText={setFullName} style={styles.input} /></Field><Field label="Số điện thoại"><TextInput value={phone} onChangeText={setPhone} keyboardType="phone-pad" style={styles.input} /></Field><Field label="Email"><TextInput value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} /></Field><Field label="Điều chỉnh số dư"><TextInput value={balance} onChangeText={(value) => setBalance(formatMoneyInput(value))} keyboardType="number-pad" placeholder="0" style={styles.input} /></Field><Field label="Nạp thêm tiền"><TextInput value={topUpAmount} onChangeText={(value) => setTopUpAmount(formatMoneyInput(value))} keyboardType="number-pad" placeholder="0" style={styles.input} /></Field></View><Text style={styles.balancePreview}>Số dư sau khi lưu: {formatMoney((normalizeMoney(balance) ?? 0) + (normalizeMoney(topUpAmount) ?? 0))}</Text><Text style={styles.note}>“Điều chỉnh số dư” đặt lại số dư thành giá trị cụ thể. “Nạp thêm tiền” cộng thêm vào số dư mới nhất của người dùng trên Firebase. Cả hai giá trị đều không được âm.</Text><Pressable disabled={saving} onPress={save} style={[styles.saveButton, saving && styles.disabled]}>{saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>Lưu thay đổi</Text>}</Pressable></View>}
+    <View style={styles.table}><View style={styles.tableHeader}><View><Text style={styles.panelTitle}>Danh sách người dùng</Text><Text style={styles.rowHint}>Nhấn vào một dòng để xem và chỉnh sửa.</Text></View><Pressable onPress={refresh}><Text style={styles.refresh}>↻ Làm mới</Text></Pressable></View>{loading ? <ActivityIndicator color={Colors.primary} style={styles.loader} /> : users.length === 0 ? <Text style={styles.empty}>Chưa có tài khoản người dùng nào.</Text> : users.map((user) => <Pressable key={user.uid} accessibilityRole="button" accessibilityLabel={`Chỉnh sửa người dùng ${user.fullName || user.email}`} onPress={() => startEdit(user)} style={({ pressed }) => [styles.row, editing?.uid === user.uid && styles.rowActive, pressed && styles.rowPressed]}><View style={styles.avatar}><Text style={styles.avatarText}>{(user.fullName || user.email).slice(0, 1).toUpperCase()}</Text></View><View style={styles.identity}><Text style={styles.name}>{user.fullName || 'Chưa có họ tên'}</Text><Text style={styles.email}>{user.email}</Text><Text style={styles.phone}>{user.phone || 'Chưa có số điện thoại'}</Text></View><View style={styles.balanceBadge}><Text style={styles.balanceBadgeLabel}>Số dư hiện tại</Text><Text style={styles.balanceBadgeValue}>{formatMoney(user.balance)}</Text></View><View style={styles.status}><Text style={styles.statusText}>Đang hoạt động</Text></View><View style={styles.actions}><Pressable disabled={saving} onPress={(event) => { event.stopPropagation(); void remove(user); }} style={[styles.deleteButton, pendingDelete === user.uid && styles.deleteConfirm]}><Text style={[styles.deleteText, pendingDelete === user.uid && styles.deleteConfirmText]}>{pendingDelete === user.uid ? 'Xác nhận xóa' : 'Xóa'}</Text></Pressable></View></Pressable>)}</View>
   </>;
 }
 
