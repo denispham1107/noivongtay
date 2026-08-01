@@ -170,7 +170,17 @@ export default function HomeScreen() {
           {loading ? <Text style={styles.dataMessage}>Đang tải các hoàn cảnh…</Text> : error ? <Text style={styles.dataError}>Không thể tải dữ liệu: {error}</Text> : featured.length === 0 ? <Text style={styles.dataMessage}>Chưa có hoàn cảnh nào được xuất bản.</Text> : <View style={[styles.grid, !desktop && styles.gridMobile]}>{featured.map((item) => <CaseCard key={item.id} item={item} priorityOption={priorities.find((entry) => entry.name === item.priority)} />)}</View>}
           {!desktop && <Pressable style={styles.outlineButton} onPress={() => router.push('/explore')}><Text style={styles.outlineText}>Xem tất cả hoàn cảnh  →</Text></Pressable>}
 
-          <View style={[styles.howSection, desktop && styles.howDesktop, wideDesktop && styles.howDesktopWide]}>
+          <View style={[styles.howSection, !desktop && styles.howSectionMobile, desktop && styles.howDesktop, wideDesktop && styles.howDesktopWide]}>
+            {!desktop && (
+              <Image
+                source={require('../../assets/images/footer-mobile-botanical-v2.png')}
+                style={styles.howBackdropMobile}
+                contentFit="cover"
+                contentPosition="center"
+                transition={250}
+                alt="Nền cành lá và đường nét trái tim"
+              />
+            )}
             {wideDesktop && (
               <Image
                 source={require('../../assets/images/footer-process-desktop.png')}
@@ -181,30 +191,42 @@ export default function HomeScreen() {
                 alt="Cành lá và đôi bàn tay nâng trái tim"
               />
             )}
-            <View style={[styles.howIntro, wideDesktop && styles.howIntroWide]}>
+            <View style={[styles.howIntro, !desktop && styles.howIntroMobile, wideDesktop && styles.howIntroWide]}>
               <View style={styles.howEyebrowRow}>
                 {wideDesktop && <View style={styles.howShield}><DesktopProcessIcon type="shield" color={Colors.primary} /></View>}
                 <Text style={styles.sectionEyebrow}>MINH BẠCH TRONG TỪNG KẾT NỐI</Text>
               </View>
-              <Text style={styles.howTitle}>Mỗi câu chuyện đều được nâng niu và xác minh.</Text>
-              <Text style={styles.howBody}>Chúng tôi đặt sự tôn trọng, minh bạch và an toàn của người cần hỗ trợ lên hàng đầu.</Text>
+              <Text style={[styles.howTitle, !desktop && styles.howTitleMobile]}>Mỗi câu chuyện đều được nâng niu và xác minh.</Text>
+              {!desktop && <View style={styles.howAccentMobile} />}
+              <Text style={[styles.howBody, !desktop && styles.howBodyMobile]}>Chúng tôi đặt sự tôn trọng, minh bạch và an toàn của người cần hỗ trợ lên hàng đầu.</Text>
             </View>
-            <View style={[styles.steps, wideDesktop && styles.stepsWide]}>
+            <View style={[styles.steps, !desktop && styles.stepsMobile, wideDesktop && styles.stepsWide]}>
+              {!desktop && <View style={styles.stepConnectorMobile} />}
               {wideDesktop && <View style={styles.stepConnectorWide} />}
-              <Step number="01" icon="document" title="Tiếp nhận" text="Thông tin được tiếp nhận từ cộng đồng và đối tác địa phương." decorated={wideDesktop} />
-              <Step number="02" icon="shield" title="Xác minh" text="Đội ngũ kiểm tra, liên hệ và bảo vệ dữ liệu nhạy cảm." decorated={wideDesktop} />
-              <Step number="03" icon="people" title="Kết nối" text="Câu chuyện được chia sẻ rõ ràng đến những tấm lòng đồng hành." decorated={wideDesktop} />
+              <Step number="01" icon="document" title="Tiếp nhận" text="Thông tin được tiếp nhận từ cộng đồng và đối tác địa phương." decorated={wideDesktop} mobileDecorated={!desktop} />
+              <Step number="02" icon="shield" title="Xác minh" text="Đội ngũ kiểm tra, liên hệ và bảo vệ dữ liệu nhạy cảm." decorated={wideDesktop} mobileDecorated={!desktop} />
+              <Step number="03" icon="people" title="Kết nối" text="Câu chuyện được chia sẻ rõ ràng đến những tấm lòng đồng hành." decorated={wideDesktop} mobileDecorated={!desktop} />
             </View>
           </View>
         </View>
 
-        <View style={styles.footer}><Text style={styles.footerHeart}>♥</Text><Text style={styles.footerText}>Nối Vòng Tay · Cùng gieo những điều tử tế</Text></View>
+        <View style={[styles.footer, !desktop && styles.footerMobile]}><Text style={!desktop ? styles.footerLeafMobile : styles.footerHeart}>{!desktop ? '⌁' : '♥'}</Text><Text style={styles.footerHeart}>♥</Text><Text style={[styles.footerText, !desktop && styles.footerTextMobile]}>Nối Vòng Tay · Cùng gieo những điều tử tế</Text>{!desktop && <Text style={[styles.footerLeafMobile, styles.footerLeafRightMobile]}>⌁</Text>}</View>
       </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
 
 type ProcessIconType = 'document' | 'shield' | 'people';
+
+const mobileProcessIconSvg: Record<ProcessIconType, string> = {
+  document: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g fill="none" stroke="#16834A" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><rect x="13" y="13" width="35" height="43" rx="3"/><path d="M24 15V9h13v6M21 26h18M21 34h14M21 42h9"/><path fill="#fff" d="M48.5 36.5c-4.2-5.2-12.5-1.9-10.6 4.8 1.2 4.1 6.7 8.2 10.6 11.2 3.9-3 9.4-7.1 10.6-11.2 1.9-6.7-6.4-10-10.6-4.8Z"/></g></svg>`,
+  shield: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g fill="none" stroke="#16834A" stroke-width="3.7" stroke-linecap="round" stroke-linejoin="round"><path d="M32 7 52 15v14c0 13.1-7.4 21.5-20 28-12.6-6.5-20-14.9-20-28V15L32 7Z"/><path d="m23 31 6 6 13-14"/></g></svg>`,
+  people: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g fill="none" stroke="#16834A" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M31.8 22.4 25 15.6a9.2 9.2 0 0 0-13 13l6.8 6.8M32.2 22.4l6.8-6.8a9.2 9.2 0 0 1 13 13l-6.8 6.8"/><path d="m23.7 30.5 8.1-8.1 8.5 8.5M19 35l4.2 4.2a3.3 3.3 0 0 0 4.7-4.7l-2-2M27.9 34.5l5.4 5.4a3.3 3.3 0 0 0 4.7-4.7l-5.3-5.3M38 35.2l2.8 2.8a3.3 3.3 0 0 0 4.7-4.7l-7.2-7.2"/><path d="m18.8 35.4-3.3 3.3a3 3 0 0 0 4.2 4.2l3.3-3.3M23 39.6l-2 2a3 3 0 0 0 4.2 4.2l2-2M27.2 43.8l-1 1a3 3 0 1 0 4.2 4.2l1-1M31.4 48l-.2.2a3 3 0 0 0 4.2 4.2l1.8-1.8"/></g></svg>`,
+};
+
+function MobileProcessIcon({ type }: { type: ProcessIconType }) {
+  return <Image source={{ uri: `data:image/svg+xml;utf8,${encodeURIComponent(mobileProcessIconSvg[type])}` }} style={styles.stepIconDrawingMobile} contentFit="contain" alt="" />;
+}
 
 function DesktopProcessIcon({ type, color = '#FFFFFF' }: { type: ProcessIconType; color?: string }) {
   const common = { fill: 'none', stroke: color, strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
@@ -230,8 +252,8 @@ function DesktopProcessIcon({ type, color = '#FFFFFF' }: { type: ProcessIconType
   return createElement('svg', { viewBox: '0 0 24 24', width: '100%', height: '100%', 'aria-hidden': true }, paths);
 }
 
-function Step({ number, title, text, icon, decorated = false }: { number: string; title: string; text: string; icon?: ProcessIconType; decorated?: boolean }) {
-  return <View style={[styles.step, decorated && styles.stepWide]}>{decorated && icon && <View style={styles.stepIconWide}><View style={styles.stepIconDrawingWide}><DesktopProcessIcon type={icon} /></View></View>}<Text style={[styles.stepNumber, decorated && styles.stepNumberWide]}>{number}</Text><View style={styles.stepContent}><Text style={styles.stepTitle}>{title}</Text><Text style={styles.stepText}>{text}</Text></View></View>;
+function Step({ number, title, text, icon, decorated = false, mobileDecorated = false }: { number: string; title: string; text: string; icon?: ProcessIconType; decorated?: boolean; mobileDecorated?: boolean }) {
+  return <View style={[styles.step, decorated && styles.stepWide, mobileDecorated && styles.stepMobile]}>{decorated && icon && <View style={styles.stepIconWide}><View style={styles.stepIconDrawingWide}><DesktopProcessIcon type={icon} /></View></View>}{mobileDecorated && icon && <View style={styles.stepIconMobile}><MobileProcessIcon type={icon} /></View>}<Text style={[styles.stepNumber, decorated && styles.stepNumberWide, mobileDecorated && styles.stepNumberMobile]}>{number}</Text><View style={styles.stepContent}><Text style={[styles.stepTitle, mobileDecorated && styles.stepTitleMobile]}>{title}</Text><Text style={[styles.stepText, mobileDecorated && styles.stepTextMobile]}>{text}</Text></View></View>;
 }
 
 const styles = StyleSheet.create({
@@ -325,30 +347,48 @@ const styles = StyleSheet.create({
   outlineButton: { borderWidth: 1, borderColor: Colors.coral, borderRadius: 13, padding: 14, alignItems: 'center', marginTop: 20 },
   outlineText: { color: Colors.coralDark, fontSize: 13, fontWeight: '800' },
   howSection: { marginTop: 70, backgroundColor: '#EAF7EF', borderRadius: 26, padding: 26, gap: 30, borderWidth: 1, borderColor: '#D6ECDE', overflow: 'hidden' },
+  howSectionMobile: { minHeight: 735, marginTop: 58, paddingHorizontal: 28, paddingTop: 48, paddingBottom: 35, gap: 30, borderRadius: 28, position: 'relative', backgroundColor: '#FBFDF9', borderColor: '#DDEBE2', shadowColor: '#17472C', shadowOpacity: 0.08, shadowRadius: 18, elevation: 2 },
+  howBackdropMobile: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
   howDesktop: { flexDirection: 'row', alignItems: 'center', padding: 48, gap: 70 },
   howDesktopWide: { minHeight: 300, paddingLeft: 74, paddingRight: 155, paddingVertical: 42, gap: 56, position: 'relative', backgroundColor: '#F8FBF7', borderColor: '#DDEEE3' },
   howBackdropWide: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
   howIntro: { flex: 0.8, minWidth: 0, width: '100%' },
+  howIntroMobile: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', position: 'relative', zIndex: 1 },
   howIntroWide: { maxWidth: 370, position: 'relative' },
   howEyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   howShield: { width: 25, height: 25 },
   howTitle: { color: Colors.ink, fontSize: 30, lineHeight: 38, fontWeight: '900', letterSpacing: -1 },
+  howTitleMobile: { maxWidth: 320, fontSize: 38, lineHeight: 46, letterSpacing: -1.5 },
+  howAccentMobile: { width: 42, height: 3, borderRadius: 3, backgroundColor: Colors.primary, marginTop: 18 },
   howBody: { color: Colors.muted, fontSize: 14, lineHeight: 22, marginTop: 14 },
+  howBodyMobile: { maxWidth: 310, fontSize: 15, lineHeight: 23, marginTop: 18 },
   steps: { width: '100%', flex: 1, minWidth: 0, gap: 19 },
+  stepsMobile: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', gap: 25, position: 'relative', zIndex: 1, paddingTop: 2 },
+  stepConnectorMobile: { position: 'absolute', left: 28, top: 48, bottom: 48, width: 1.5, borderRadius: 2, backgroundColor: '#CDE4D4' },
   stepsWide: { maxWidth: 520, gap: 14, position: 'relative' },
   stepConnectorWide: { position: 'absolute', left: 22, top: 35, bottom: 35, width: 2, backgroundColor: '#B8DBC6' },
   step: { width: '100%', minWidth: 0, flexDirection: 'row', gap: 15, alignItems: 'flex-start' },
+  stepMobile: { minHeight: 83, alignItems: 'flex-start', gap: 10, position: 'relative' },
   stepWide: { minHeight: 58, alignItems: 'center', gap: 13, position: 'relative' },
+  stepIconMobile: { flexShrink: 0, width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.96)', shadowColor: '#17472C', shadowOpacity: 0.11, shadowRadius: 13, elevation: 3, zIndex: 1 },
+  stepIconDrawingMobile: { width: 43, height: 43 },
   stepIconWide: { flexShrink: 0, width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primaryDark, borderWidth: 3, borderColor: '#E7F4EB' },
   stepIconDrawingWide: { width: 25, height: 25 },
   stepNumber: { flexShrink: 0, color: Colors.coral, fontSize: 23, fontWeight: '900', width: 42 },
+  stepNumberMobile: { width: 47, marginTop: 1, paddingVertical: 5, borderRadius: 18, overflow: 'hidden', backgroundColor: '#E6F4EA', color: Colors.primaryDark, fontSize: 17, lineHeight: 22, textAlign: 'center' },
   stepNumberWide: { color: Colors.primary, fontSize: 19, width: 34 },
   stepContent: { flex: 1, minWidth: 0 },
   stepTitle: { color: Colors.ink, fontSize: 15, fontWeight: '800' },
+  stepTitleMobile: { fontSize: 18, lineHeight: 24, fontWeight: '900' },
   stepText: { width: '100%', flexShrink: 1, color: Colors.muted, fontSize: 12, lineHeight: 18, marginTop: 3 },
+  stepTextMobile: { fontSize: 14, lineHeight: 21, marginTop: 7 },
   footer: { borderTopWidth: 1, borderTopColor: Colors.line, paddingVertical: 28, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 },
+  footerMobile: { minHeight: 86, paddingHorizontal: 16, paddingTop: 22, paddingBottom: 27, borderTopWidth: 0, gap: 7 },
   footerHeart: { color: Colors.coral },
   footerText: { flexShrink: 1, color: Colors.muted, fontSize: 12, textAlign: 'center' },
+  footerTextMobile: { fontSize: 13, lineHeight: 18 },
+  footerLeafMobile: { color: '#B7DCC3', fontSize: 25, lineHeight: 26, transform: [{ rotate: '24deg' }] },
+  footerLeafRightMobile: { transform: [{ rotate: '204deg' }] },
   dataMessage: { color: Colors.muted, fontSize: 13, paddingVertical: 24 },
   dataError: { color: Colors.red, backgroundColor: Colors.redSoft, borderRadius: 12, padding: 14, fontSize: 12 },
 });
