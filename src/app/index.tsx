@@ -220,14 +220,14 @@ export default function HomeScreen() {
 type ProcessIconType = 'document' | 'shield' | 'people';
 
 function MobileProcessIcon({ type }: { type: ProcessIconType }) {
-  const common = { fill: 'none', stroke: '#16834A', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+  const common = { fill: 'none', stroke: '#16834A', strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
   if (type === 'document') {
-    return <Svg width="43" height="43" viewBox="0 0 24 24"><Rect x="5" y="4" width="13" height="17" rx="2" {...common} /><Path d="M9 4V2.8h5V4M8 9h7M8 12h5M8 15h3" {...common} /><Path d="M18.4 13.7c-1.8-2.1-5.2-.7-4.4 2 .5 1.7 2.8 3.4 4.4 4.6 1.6-1.2 3.9-2.9 4.4-4.6.8-2.7-2.6-4.1-4.4-2Z" fill="#fff" stroke="#16834A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></Svg>;
+    return <Svg width="43" height="43" viewBox="0 0 24 24"><Rect x="5" y="4" width="13" height="17" rx="2" {...common} /><Path d="M9 4V2.8h5V4M8 9h7M8 12h5M8 15h3" {...common} /><Path d="M18.4 13.7c-1.8-2.1-5.2-.7-4.4 2 .5 1.7 2.8 3.4 4.4 4.6 1.6-1.2 3.9-2.9 4.4-4.6.8-2.7-2.6-4.1-4.4-2Z" fill="#fff" stroke="#16834A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></Svg>;
   }
   if (type === 'shield') {
     return <Svg width="43" height="43" viewBox="0 0 24 24"><Path d="M12 2.5 20 6v5.7c0 5.2-2.9 8.6-8 11.3-5.1-2.7-8-6.1-8-11.3V6l8-3.5Z" {...common} /><Path d="m8.5 12 2.4 2.4 5-5.4" {...common} /></Svg>;
   }
-  return <Svg width="45" height="45" viewBox="0 0 24 24"><Path d="m11 17 2 2a1.45 1.45 0 0 0 2-2.1" {...common} /><Path d="m14 14 2.5 2.5a1.45 1.45 0 0 0 2-2.1l-4.9-4.9a2.5 2.5 0 0 0-3.5 0l-1 1a1.7 1.7 0 0 1-2.4-2.4l2.5-2.5a4.2 4.2 0 0 1 5.2-.7l1 .6c.7.4 1.4.5 2.1.2L21 4" {...common} /><Path d="m21 3 1 11h-3M3 3 2 14l6.5 6.5a1.45 1.45 0 0 0 2-2.1L7 15M3 4h6" {...common} /><Path d="m7 15 2.5 2.5M9.5 12.5l4.2 4.2" {...common} /></Svg>;
+  return <Svg width="43" height="43" viewBox="0 0 24 24"><Path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" {...common} /></Svg>;
 }
 
 function DesktopProcessIcon({ type, color = '#FFFFFF' }: { type: ProcessIconType; color?: string }) {
