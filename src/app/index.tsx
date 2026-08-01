@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
+import { createElement } from 'react';
 import { Platform, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -146,7 +147,7 @@ export default function HomeScreen() {
             )}
             <View style={[styles.howIntro, wideDesktop && styles.howIntroWide]}>
               <View style={styles.howEyebrowRow}>
-                {wideDesktop && <Text style={styles.howShield}>♢</Text>}
+                {wideDesktop && <View style={styles.howShield}><DesktopProcessIcon type="shield" color={Colors.primary} /></View>}
                 <Text style={styles.sectionEyebrow}>MINH BẠCH TRONG TỪNG KẾT NỐI</Text>
               </View>
               <Text style={styles.howTitle}>Mỗi câu chuyện đều được nâng niu và xác minh.</Text>
@@ -154,9 +155,9 @@ export default function HomeScreen() {
             </View>
             <View style={[styles.steps, wideDesktop && styles.stepsWide]}>
               {wideDesktop && <View style={styles.stepConnectorWide} />}
-              <Step number="01" icon="▤" title="Tiếp nhận" text="Thông tin được tiếp nhận từ cộng đồng và đối tác địa phương." decorated={wideDesktop} />
-              <Step number="02" icon="◇" title="Xác minh" text="Đội ngũ kiểm tra, liên hệ và bảo vệ dữ liệu nhạy cảm." decorated={wideDesktop} />
-              <Step number="03" icon="♧" title="Kết nối" text="Câu chuyện được chia sẻ rõ ràng đến những tấm lòng đồng hành." decorated={wideDesktop} />
+              <Step number="01" icon="document" title="Tiếp nhận" text="Thông tin được tiếp nhận từ cộng đồng và đối tác địa phương." decorated={wideDesktop} />
+              <Step number="02" icon="shield" title="Xác minh" text="Đội ngũ kiểm tra, liên hệ và bảo vệ dữ liệu nhạy cảm." decorated={wideDesktop} />
+              <Step number="03" icon="people" title="Kết nối" text="Câu chuyện được chia sẻ rõ ràng đến những tấm lòng đồng hành." decorated={wideDesktop} />
             </View>
           </View>
         </View>
@@ -167,8 +168,34 @@ export default function HomeScreen() {
   );
 }
 
-function Step({ number, title, text, icon, decorated = false }: { number: string; title: string; text: string; icon?: string; decorated?: boolean }) {
-  return <View style={[styles.step, decorated && styles.stepWide]}>{decorated && <View style={styles.stepIconWide}><Text style={styles.stepIconTextWide}>{icon}</Text></View>}<Text style={[styles.stepNumber, decorated && styles.stepNumberWide]}>{number}</Text><View style={styles.stepContent}><Text style={styles.stepTitle}>{title}</Text><Text style={styles.stepText}>{text}</Text></View></View>;
+type ProcessIconType = 'document' | 'shield' | 'people';
+
+function DesktopProcessIcon({ type, color = '#FFFFFF' }: { type: ProcessIconType; color?: string }) {
+  const common = { fill: 'none', stroke: color, strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+  const paths = type === 'document'
+    ? [
+        createElement('rect', { key: 'paper', x: 6.5, y: 3, width: 11, height: 18, rx: 1.7, ...common }),
+        createElement('path', { key: 'clip', d: 'M9 3h6v3H9z', ...common }),
+        createElement('path', { key: 'lines', d: 'M9 10h6M9 14h6M9 18h4.5', ...common }),
+      ]
+    : type === 'shield'
+      ? [
+          createElement('path', { key: 'shield', d: 'M12 2.8 19 5.7v5.2c0 4.5-2.6 7.5-7 9.8-4.4-2.3-7-5.3-7-9.8V5.7L12 2.8Z', ...common }),
+          createElement('path', { key: 'check', d: 'm8.7 11.8 2.1 2.1 4.5-4.7', ...common }),
+        ]
+      : [
+          createElement('circle', { key: 'head-main', cx: 12, cy: 7.2, r: 2.3, ...common }),
+          createElement('circle', { key: 'head-left', cx: 6.8, cy: 9, r: 1.7, ...common }),
+          createElement('circle', { key: 'head-right', cx: 17.2, cy: 9, r: 1.7, ...common }),
+          createElement('path', { key: 'body-main', d: 'M7.9 19v-2.2c0-2.5 1.7-4.1 4.1-4.1s4.1 1.6 4.1 4.1V19', ...common }),
+          createElement('path', { key: 'body-side', d: 'M3.8 18v-1.6c0-2 1.2-3.2 3-3.2.8 0 1.4.2 2 .6M20.2 18v-1.6c0-2-1.2-3.2-3-3.2-.8 0-1.4.2-2 .6', ...common }),
+        ];
+
+  return createElement('svg', { viewBox: '0 0 24 24', width: '100%', height: '100%', 'aria-hidden': true }, paths);
+}
+
+function Step({ number, title, text, icon, decorated = false }: { number: string; title: string; text: string; icon?: ProcessIconType; decorated?: boolean }) {
+  return <View style={[styles.step, decorated && styles.stepWide]}>{decorated && icon && <View style={styles.stepIconWide}><View style={styles.stepIconDrawingWide}><DesktopProcessIcon type={icon} /></View></View>}<Text style={[styles.stepNumber, decorated && styles.stepNumberWide]}>{number}</Text><View style={styles.stepContent}><Text style={styles.stepTitle}>{title}</Text><Text style={styles.stepText}>{text}</Text></View></View>;
 }
 
 const styles = StyleSheet.create({
@@ -245,7 +272,7 @@ const styles = StyleSheet.create({
   howIntro: { flex: 0.8, minWidth: 0, width: '100%' },
   howIntroWide: { maxWidth: 370, position: 'relative' },
   howEyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  howShield: { width: 23, height: 23, textAlign: 'center', color: Colors.primary, fontSize: 22, lineHeight: 23, fontWeight: '900' },
+  howShield: { width: 25, height: 25 },
   howTitle: { color: Colors.ink, fontSize: 30, lineHeight: 38, fontWeight: '900', letterSpacing: -1 },
   howBody: { color: Colors.muted, fontSize: 14, lineHeight: 22, marginTop: 14 },
   steps: { width: '100%', flex: 1, minWidth: 0, gap: 19 },
@@ -254,7 +281,7 @@ const styles = StyleSheet.create({
   step: { width: '100%', minWidth: 0, flexDirection: 'row', gap: 15, alignItems: 'flex-start' },
   stepWide: { minHeight: 58, alignItems: 'center', gap: 13, position: 'relative' },
   stepIconWide: { flexShrink: 0, width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primaryDark, borderWidth: 3, borderColor: '#E7F4EB' },
-  stepIconTextWide: { color: '#FFF', fontSize: 22, lineHeight: 25, fontWeight: '800' },
+  stepIconDrawingWide: { width: 25, height: 25 },
   stepNumber: { flexShrink: 0, color: Colors.coral, fontSize: 23, fontWeight: '900', width: 42 },
   stepNumberWide: { color: Colors.primary, fontSize: 19, width: 34 },
   stepContent: { flex: 1, minWidth: 0 },
