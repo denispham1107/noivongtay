@@ -56,6 +56,10 @@ export default function HomeScreen() {
     url: getCoverImage(item)?.url || item.image,
   }));
 
+  const openCategory = (category: string) => {
+    router.push({ pathname: '/explore', params: { category } });
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <PublicHeader />
@@ -155,7 +159,7 @@ export default function HomeScreen() {
         <View style={styles.content}>
           <View style={styles.categoryRow}>
             {categories.map((category, index) => (
-              <Pressable key={category} style={[styles.categoryPill, index === 0 ? styles.categoryPillActive : accentPills[(index - 1) % accentPills.length]]} onPress={() => router.push('/explore')}>
+              <Pressable key={category} accessibilityRole="button" accessibilityLabel={`Khám phá danh mục ${category}`} style={[styles.categoryPill, index === 0 ? styles.categoryPillActive : accentPills[(index - 1) % accentPills.length]]} onPress={() => openCategory(category)}>
                 <Text style={[styles.categoryText, index === 0 && styles.categoryTextActive]}>{category}</Text>
               </Pressable>
             ))}

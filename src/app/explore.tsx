@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -21,6 +22,7 @@ const filterAccents = [
 ];
 
 export default function ExploreScreen() {
+  const { category: categoryParam } = useLocalSearchParams<{ category?: string | string[] }>();
   const { width } = useWindowDimensions();
   const { cases, loading, error } = usePublishedCases();
   const { categories: categoryOptions } = useCaseCategories();
@@ -29,6 +31,13 @@ export default function ExploreScreen() {
   const [selected, setSelected] = useState('Tất cả');
   const [query, setQuery] = useState('');
   const filtered = useMemo(() => sortCasesByPriority(cases.filter((item) => (selected === 'Tất cả' || item.category === selected) && `${item.name} ${item.location} ${item.summary}`.toLowerCase().includes(query.toLowerCase())), priorities), [cases, priorities, selected, query]);
+
+  useEffect(() => {
+    const requestedCategory = Array.isArray(categoryParam) ? categoryParam[0] : categoryParam;
+    if (requestedCategory && categories.includes(requestedCategory)) {
+      setSelected(requestedCategory);
+    }
+  }, [categoryParam, categories.join('|')]);
 
   useEffect(() => {
     if (!categories.includes(selected)) setSelected('Tất cả');
