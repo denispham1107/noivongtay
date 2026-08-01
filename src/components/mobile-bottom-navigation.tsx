@@ -44,7 +44,7 @@ export function MobileBottomNavigation() {
         styles.shell,
         Platform.OS === 'web' && styles.webShell,
         desktopWeb && styles.desktopShell,
-        { paddingBottom: Math.max(insets.bottom, Platform.OS === 'web' ? 10 : 6) },
+        { paddingBottom: desktopWeb ? 5 : Math.max(insets.bottom, Platform.OS === 'web' ? 10 : 6) },
       ]}>
       <View style={[styles.items, desktopWeb && styles.desktopItems]}>
         {tabs.map((tab) => {
@@ -108,8 +108,9 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   desktopShell: {
-    paddingTop: 10,
-    paddingHorizontal: 20,
+    paddingTop: 5,
+    paddingHorizontal: 12,
+    justifyContent: 'center',
   },
   items: {
     width: '100%',
@@ -117,8 +118,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   desktopItems: {
-    maxWidth: 960,
-    alignSelf: 'center',
+    width: '100%',
+    maxWidth: 720,
   },
   item: {
     flex: 1,
@@ -129,8 +130,8 @@ const styles = StyleSheet.create({
   },
   itemPressed: { opacity: 0.62 },
   desktopItem: {
-    gap: 3,
-    minHeight: 58,
+    gap: 1,
+    minHeight: 42,
   },
   iconSurface: {
     width: 40,
@@ -141,12 +142,12 @@ const styles = StyleSheet.create({
   },
   iconSurfaceActive: { backgroundColor: Colors.primarySoft },
   desktopIconSurface: {
-    width: 54,
-    height: 36,
-    borderRadius: 19,
+    width: 38,
+    height: 27,
+    borderRadius: 14,
   },
   label: { color: '#778B80', fontSize: 9, fontWeight: '800' },
-  desktopLabel: { fontSize: 12, fontWeight: '800' },
+  desktopLabel: { fontSize: 9, fontWeight: '800' },
   labelActive: { color: Colors.primaryDark },
   icon: { width: 27, height: 25, alignItems: 'center', justifyContent: 'center' },
   homeRoof: {
