@@ -140,7 +140,8 @@ export default function HomeScreen() {
               <Image
                 source={require('../../assets/images/footer-process-desktop.png')}
                 style={styles.howBackdropWide}
-                contentFit="fill"
+                contentFit="cover"
+                contentPosition="center"
                 transition={250}
                 alt="Cành lá và đôi bàn tay nâng trái tim"
               />
