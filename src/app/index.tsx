@@ -22,6 +22,23 @@ const accentPills = [
   { backgroundColor: Colors.pinkSoft, borderColor: '#F2C5D8' },
 ];
 
+function ShieldCheckIcon() {
+  return (
+    <View style={styles.shieldIconMobile} accessibilityElementsHidden>
+      <Text style={styles.shieldCheckMobile}>✓</Text>
+    </View>
+  );
+}
+
+function LockIcon() {
+  return (
+    <View style={styles.lockIconMobile} accessibilityElementsHidden>
+      <View style={styles.lockShackleMobile} />
+      <View style={styles.lockBodyMobile}><View style={styles.lockKeyholeMobile} /></View>
+    </View>
+  );
+}
+
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
   const desktop = width >= 760;
@@ -42,7 +59,17 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <PublicHeader />
       <KeyboardAwareScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
-        <View style={[styles.heroOuter, wideDesktop && styles.heroOuterWide]}>
+        <View style={[styles.heroOuter, !desktop && styles.heroOuterMobile, wideDesktop && styles.heroOuterWide]}>
+          {!desktop && (
+            <Image
+              source={require('../../assets/images/hero-mobile-botanical-v2.png')}
+              style={styles.heroBackdropMobile}
+              contentFit="cover"
+              contentPosition="center"
+              transition={250}
+              alt="Nền lá cây và những đường nét hình trái tim"
+            />
+          )}
           {wideDesktop && (
             <Image
               source={require('../../assets/images/hero-community-seamless-desktop.png')}
@@ -52,20 +79,28 @@ export default function HomeScreen() {
               alt="Cành lá và những bàn tay cùng nâng chiếc lá hình trái tim"
             />
           )}
-          <View style={[styles.hero, desktop && styles.heroDesktop, wideDesktop && styles.heroDesktopWide]}>
-            <View style={[styles.heroCopy, wideDesktop && styles.heroCopyWide]}>
-              <View style={styles.eyebrow}><Text style={styles.eyebrowText}>♥  CÙNG NHAU TẠO NÊN THAY ĐỔI</Text></View>
-              <Text style={[styles.heroTitle, desktop && styles.heroTitleDesktop, wideDesktop && styles.heroTitleWide]}>Một vòng tay mở ra,{`\n`}một hy vọng bắt đầu.</Text>
-              <Text style={styles.heroBody}>Kết nối những hoàn cảnh đang cần giúp đỡ với những tấm lòng sẵn sàng sẻ chia — minh bạch, tử tế và đầy yêu thương.</Text>
+          <View style={[styles.hero, !desktop && styles.heroMobile, desktop && styles.heroDesktop, wideDesktop && styles.heroDesktopWide]}>
+            <View style={[styles.heroCopy, !desktop && styles.heroCopyMobile, wideDesktop && styles.heroCopyWide]}>
+              <View style={[styles.eyebrow, !desktop && styles.eyebrowMobile]}><Text style={[styles.eyebrowText, !desktop && styles.eyebrowTextMobile]}>♥  CÙNG NHAU TẠO NÊN THAY ĐỔI</Text></View>
+              <Text style={[styles.heroTitle, !desktop && styles.heroTitleMobile, desktop && styles.heroTitleDesktop, wideDesktop && styles.heroTitleWide]}>Một vòng tay mở ra,{`\n`}một hy vọng bắt đầu.</Text>
+              <Text style={[styles.heroBody, !desktop && styles.heroBodyMobile]}>Kết nối những hoàn cảnh đang cần giúp đỡ với những tấm lòng sẵn sàng sẻ chia — minh bạch, tử tế và đầy yêu thương.</Text>
               <View style={[styles.search, !desktop && styles.searchMobile]}>
-                <Text style={styles.searchIcon}>⌕</Text>
-                <TextInput placeholder="Tìm theo tên, khu vực hoặc câu chuyện..." placeholderTextColor="#A3948D" style={styles.searchInput} accessibilityLabel="Tìm kiếm hoàn cảnh" />
-                <Pressable style={styles.searchButton} onPress={() => router.push('/explore')}><Text style={styles.searchButtonText}>Tìm kiếm</Text></Pressable>
+                <View style={!desktop ? styles.searchIconCircleMobile : undefined}><Text style={[styles.searchIcon, !desktop && styles.searchIconMobile]}>⌕</Text></View>
+                <TextInput placeholder="Tìm theo tên, khu vực hoặc câu chuyện..." placeholderTextColor="#8C978F" style={[styles.searchInput, !desktop && styles.searchInputMobile]} accessibilityLabel="Tìm kiếm hoàn cảnh" />
+                <Pressable style={[styles.searchButton, !desktop && styles.searchButtonMobile]} onPress={() => router.push('/explore')}><Text style={[styles.searchButtonText, !desktop && styles.searchButtonTextMobile]}>Tìm kiếm</Text></Pressable>
               </View>
-              <View style={styles.trustRow}>
-                <Text style={styles.trustText}>✓ Thông tin được xác minh</Text>
-                <Text style={styles.trustText}>♡ Tôn trọng và bảo mật</Text>
-              </View>
+              {!desktop ? (
+                <View style={[styles.trustRow, styles.trustRowMobile]}>
+                  <View style={styles.trustItemMobile}><ShieldCheckIcon /><Text style={[styles.trustText, styles.trustTextMobile]}>Thông tin được xác minh</Text></View>
+                  <View style={styles.trustDividerMobile} />
+                  <View style={styles.trustItemMobile}><LockIcon /><Text style={[styles.trustText, styles.trustTextMobile]}>Tôn trọng và bảo mật</Text></View>
+                </View>
+              ) : (
+                <View style={styles.trustRow}>
+                  <Text style={styles.trustText}>✓ Thông tin được xác minh</Text>
+                  <Text style={styles.trustText}>♡ Tôn trọng và bảo mật</Text>
+                </View>
+              )}
             </View>
             {wideDesktop ? (
               <View style={styles.heroVisualWide}>
@@ -203,27 +238,50 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.cream },
   page: { flexGrow: 1 },
   heroOuter: { backgroundColor: '#EAF7EF', borderBottomWidth: 1, borderBottomColor: '#D6ECDE' },
+  heroOuterMobile: { position: 'relative', overflow: 'hidden', backgroundColor: '#F4FBF6' },
+  heroBackdropMobile: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, width: '100%', height: '100%' },
   heroOuterWide: { backgroundColor: '#FAFCF8', position: 'relative', overflow: 'hidden' },
   heroBackdropWide: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, width: '100%', height: '100%' },
   hero: { maxWidth: 1180, width: '100%', alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 55 },
+  heroMobile: { minHeight: 430, paddingHorizontal: 19, paddingTop: 34, paddingBottom: 18, position: 'relative' },
   heroDesktop: { flexDirection: 'row', minHeight: 500, alignItems: 'center', gap: 70, paddingVertical: 70 },
   heroDesktopWide: { maxWidth: 1440, minHeight: 520, gap: 36, paddingHorizontal: 32, paddingVertical: 44, position: 'relative' },
   heroCopy: { flex: 1, width: '100%', maxWidth: 650, minWidth: 0 },
+  heroCopyMobile: { zIndex: 1, maxWidth: 520 },
   heroCopyWide: { flex: 0.92, maxWidth: 620, paddingLeft: 8 },
   eyebrow: { alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.72)', borderRadius: 20, paddingHorizontal: 13, paddingVertical: 8, marginBottom: 18 },
+  eyebrowMobile: { backgroundColor: 'rgba(255,255,255,0.9)', paddingHorizontal: 13, paddingVertical: 8, marginBottom: 24, shadowColor: '#17472C', shadowOpacity: 0.08, shadowRadius: 12, elevation: 1 },
   eyebrowText: { color: Colors.coralDark, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  eyebrowTextMobile: { color: Colors.primaryDark, fontSize: 10, letterSpacing: 1.05 },
   heroTitle: { color: Colors.ink, fontSize: 40, lineHeight: 48, fontWeight: '900', letterSpacing: -1.7 },
+  heroTitleMobile: { fontSize: 37, lineHeight: 43, letterSpacing: -1.6, maxWidth: 480 },
   heroTitleDesktop: { fontSize: 56, lineHeight: 64, letterSpacing: -2.4 },
   heroTitleWide: { fontSize: 54, lineHeight: 59, letterSpacing: -2.2 },
   heroBody: { color: Colors.muted, fontSize: 16, lineHeight: 26, maxWidth: 590, marginTop: 20 },
+  heroBodyMobile: { color: '#64756B', fontSize: 15, lineHeight: 22, maxWidth: 455, marginTop: 18 },
   search: { marginTop: 28, backgroundColor: Colors.paper, borderRadius: 16, padding: 7, paddingLeft: 16, flexDirection: 'row', alignItems: 'center', gap: 10, shadowColor: '#16472C', shadowOpacity: 0.1, shadowRadius: 18, elevation: 2 },
-  searchMobile: { flexWrap: 'wrap' },
+  searchMobile: { marginTop: 35, flexWrap: 'nowrap', borderRadius: 17, padding: 7, paddingLeft: 9, gap: 7, shadowOpacity: 0.12, shadowRadius: 16 },
   searchIcon: { fontSize: 23, color: Colors.muted },
+  searchIconCircleMobile: { flexShrink: 0, width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E9F8EF' },
+  searchIconMobile: { color: Colors.primaryDark, fontSize: 22, lineHeight: 24 },
   searchInput: { flex: 1, flexBasis: 180, minWidth: 0, color: Colors.ink, fontSize: 14, paddingVertical: 10, outlineStyle: 'none' } as any,
+  searchInputMobile: { flexBasis: 0, fontSize: 14, paddingVertical: 9 },
   searchButton: { backgroundColor: Colors.coral, borderRadius: 12, paddingHorizontal: 22, paddingVertical: 14 },
+  searchButtonMobile: { minHeight: 48, paddingHorizontal: 18, paddingVertical: 13, alignItems: 'center', justifyContent: 'center', shadowColor: '#16472C', shadowOpacity: 0.16, shadowRadius: 8, elevation: 2 },
   searchButtonText: { color: '#fff', fontSize: 13, fontWeight: '800' },
+  searchButtonTextMobile: { fontSize: 13 },
   trustRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 18, marginTop: 16 },
+  trustRowMobile: { width: '100%', flexWrap: 'nowrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 14, paddingHorizontal: 7 },
+  trustItemMobile: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  trustDividerMobile: { width: 1, height: 20, backgroundColor: '#CFE4D6' },
+  shieldIconMobile: { width: 16, height: 18, borderWidth: 1.8, borderColor: Colors.primary, borderTopLeftRadius: 5, borderTopRightRadius: 5, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  shieldCheckMobile: { color: Colors.primary, fontSize: 10, lineHeight: 11, fontWeight: '900' },
+  lockIconMobile: { width: 17, height: 18, alignItems: 'center', justifyContent: 'flex-end' },
+  lockShackleMobile: { position: 'absolute', top: 0, width: 10, height: 10, borderWidth: 1.8, borderColor: Colors.primary, borderBottomWidth: 0, borderTopLeftRadius: 6, borderTopRightRadius: 6 },
+  lockBodyMobile: { width: 16, height: 11, borderWidth: 1.8, borderColor: Colors.primary, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.3)' },
+  lockKeyholeMobile: { width: 2.5, height: 4, borderRadius: 2, backgroundColor: Colors.primary },
   trustText: { color: Colors.green, fontSize: 11, fontWeight: '600' },
+  trustTextMobile: { flexShrink: 1, color: Colors.primaryDark, fontSize: 10, lineHeight: 14, fontWeight: '700' },
   heroArt: { flex: 0.75, minHeight: 330, backgroundColor: '#CDEBD9', borderRadius: 140, alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' },
   sun: { position: 'absolute', width: 155, height: 155, borderRadius: 100, backgroundColor: Colors.yellowSoft, top: 40, right: 20, opacity: 0.95 },
   artHeart: { fontSize: 116, color: Colors.pink, opacity: 0.9, marginTop: -55 },
