@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { createElement } from 'react';
 import { Platform, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Path, Rect } from 'react-native-svg';
 
 import { CaseCard } from '@/components/case-card';
 import { Text, TextInput } from '@/components/fixed-text';
@@ -175,7 +176,7 @@ export default function HomeScreen() {
               <Image
                 source={require('../../assets/images/footer-mobile-botanical-v2.png')}
                 style={styles.howBackdropMobile}
-                contentFit="cover"
+                contentFit="fill"
                 contentPosition="center"
                 transition={250}
                 alt="Nền cành lá và đường nét trái tim"
@@ -218,14 +219,15 @@ export default function HomeScreen() {
 
 type ProcessIconType = 'document' | 'shield' | 'people';
 
-const mobileProcessIconSvg: Record<ProcessIconType, string> = {
-  document: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g fill="none" stroke="#16834A" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><rect x="13" y="13" width="35" height="43" rx="3"/><path d="M24 15V9h13v6M21 26h18M21 34h14M21 42h9"/><path fill="#fff" d="M48.5 36.5c-4.2-5.2-12.5-1.9-10.6 4.8 1.2 4.1 6.7 8.2 10.6 11.2 3.9-3 9.4-7.1 10.6-11.2 1.9-6.7-6.4-10-10.6-4.8Z"/></g></svg>`,
-  shield: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g fill="none" stroke="#16834A" stroke-width="3.7" stroke-linecap="round" stroke-linejoin="round"><path d="M32 7 52 15v14c0 13.1-7.4 21.5-20 28-12.6-6.5-20-14.9-20-28V15L32 7Z"/><path d="m23 31 6 6 13-14"/></g></svg>`,
-  people: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g fill="none" stroke="#16834A" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M31.8 22.4 25 15.6a9.2 9.2 0 0 0-13 13l6.8 6.8M32.2 22.4l6.8-6.8a9.2 9.2 0 0 1 13 13l-6.8 6.8"/><path d="m23.7 30.5 8.1-8.1 8.5 8.5M19 35l4.2 4.2a3.3 3.3 0 0 0 4.7-4.7l-2-2M27.9 34.5l5.4 5.4a3.3 3.3 0 0 0 4.7-4.7l-5.3-5.3M38 35.2l2.8 2.8a3.3 3.3 0 0 0 4.7-4.7l-7.2-7.2"/><path d="m18.8 35.4-3.3 3.3a3 3 0 0 0 4.2 4.2l3.3-3.3M23 39.6l-2 2a3 3 0 0 0 4.2 4.2l2-2M27.2 43.8l-1 1a3 3 0 1 0 4.2 4.2l1-1M31.4 48l-.2.2a3 3 0 0 0 4.2 4.2l1.8-1.8"/></g></svg>`,
-};
-
 function MobileProcessIcon({ type }: { type: ProcessIconType }) {
-  return <Image source={{ uri: `data:image/svg+xml;utf8,${encodeURIComponent(mobileProcessIconSvg[type])}` }} style={styles.stepIconDrawingMobile} contentFit="contain" alt="" />;
+  const common = { fill: 'none', stroke: '#16834A', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+  if (type === 'document') {
+    return <Svg width="43" height="43" viewBox="0 0 24 24"><Rect x="5" y="4" width="13" height="17" rx="2" {...common} /><Path d="M9 4V2.8h5V4M8 9h7M8 12h5M8 15h3" {...common} /><Path d="M18.4 13.7c-1.8-2.1-5.2-.7-4.4 2 .5 1.7 2.8 3.4 4.4 4.6 1.6-1.2 3.9-2.9 4.4-4.6.8-2.7-2.6-4.1-4.4-2Z" fill="#fff" stroke="#16834A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></Svg>;
+  }
+  if (type === 'shield') {
+    return <Svg width="43" height="43" viewBox="0 0 24 24"><Path d="M12 2.5 20 6v5.7c0 5.2-2.9 8.6-8 11.3-5.1-2.7-8-6.1-8-11.3V6l8-3.5Z" {...common} /><Path d="m8.5 12 2.4 2.4 5-5.4" {...common} /></Svg>;
+  }
+  return <Svg width="45" height="45" viewBox="0 0 24 24"><Path d="m11 17 2 2a1.45 1.45 0 0 0 2-2.1" {...common} /><Path d="m14 14 2.5 2.5a1.45 1.45 0 0 0 2-2.1l-4.9-4.9a2.5 2.5 0 0 0-3.5 0l-1 1a1.7 1.7 0 0 1-2.4-2.4l2.5-2.5a4.2 4.2 0 0 1 5.2-.7l1 .6c.7.4 1.4.5 2.1.2L21 4" {...common} /><Path d="m21 3 1 11h-3M3 3 2 14l6.5 6.5a1.45 1.45 0 0 0 2-2.1L7 15M3 4h6" {...common} /><Path d="m7 15 2.5 2.5M9.5 12.5l4.2 4.2" {...common} /></Svg>;
 }
 
 function DesktopProcessIcon({ type, color = '#FFFFFF' }: { type: ProcessIconType; color?: string }) {
@@ -348,7 +350,7 @@ const styles = StyleSheet.create({
   outlineText: { color: Colors.coralDark, fontSize: 13, fontWeight: '800' },
   howSection: { marginTop: 70, backgroundColor: '#EAF7EF', borderRadius: 26, padding: 26, gap: 30, borderWidth: 1, borderColor: '#D6ECDE', overflow: 'hidden' },
   howSectionMobile: { minHeight: 735, marginTop: 58, paddingHorizontal: 28, paddingTop: 48, paddingBottom: 35, gap: 30, borderRadius: 28, position: 'relative', backgroundColor: '#FBFDF9', borderColor: '#DDEBE2', shadowColor: '#17472C', shadowOpacity: 0.08, shadowRadius: 18, elevation: 2 },
-  howBackdropMobile: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
+  howBackdropMobile: { ...StyleSheet.absoluteFillObject },
   howDesktop: { flexDirection: 'row', alignItems: 'center', padding: 48, gap: 70 },
   howDesktopWide: { minHeight: 300, paddingLeft: 74, paddingRight: 155, paddingVertical: 42, gap: 56, position: 'relative', backgroundColor: '#F8FBF7', borderColor: '#DDEEE3' },
   howBackdropWide: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
