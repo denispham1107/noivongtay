@@ -134,16 +134,29 @@ export default function HomeScreen() {
           {loading ? <Text style={styles.dataMessage}>Đang tải các hoàn cảnh…</Text> : error ? <Text style={styles.dataError}>Không thể tải dữ liệu: {error}</Text> : featured.length === 0 ? <Text style={styles.dataMessage}>Chưa có hoàn cảnh nào được xuất bản.</Text> : <View style={[styles.grid, !desktop && styles.gridMobile]}>{featured.map((item) => <CaseCard key={item.id} item={item} priorityOption={priorities.find((entry) => entry.name === item.priority)} />)}</View>}
           {!desktop && <Pressable style={styles.outlineButton} onPress={() => router.push('/explore')}><Text style={styles.outlineText}>Xem tất cả hoàn cảnh  →</Text></Pressable>}
 
-          <View style={[styles.howSection, desktop && styles.howDesktop]}>
-            <View style={styles.howIntro}>
-              <Text style={styles.sectionEyebrow}>MINH BẠCH TRONG TỪNG KẾT NỐI</Text>
+          <View style={[styles.howSection, desktop && styles.howDesktop, wideDesktop && styles.howDesktopWide]}>
+            {wideDesktop && (
+              <Image
+                source={require('../../assets/images/footer-process-desktop.png')}
+                style={styles.howBackdropWide}
+                contentFit="fill"
+                transition={250}
+                alt="Cành lá và đôi bàn tay nâng trái tim"
+              />
+            )}
+            <View style={[styles.howIntro, wideDesktop && styles.howIntroWide]}>
+              <View style={styles.howEyebrowRow}>
+                {wideDesktop && <Text style={styles.howShield}>♢</Text>}
+                <Text style={styles.sectionEyebrow}>MINH BẠCH TRONG TỪNG KẾT NỐI</Text>
+              </View>
               <Text style={styles.howTitle}>Mỗi câu chuyện đều được nâng niu và xác minh.</Text>
               <Text style={styles.howBody}>Chúng tôi đặt sự tôn trọng, minh bạch và an toàn của người cần hỗ trợ lên hàng đầu.</Text>
             </View>
-            <View style={styles.steps}>
-              <Step number="01" title="Tiếp nhận" text="Thông tin được tiếp nhận từ cộng đồng và đối tác địa phương." />
-              <Step number="02" title="Xác minh" text="Đội ngũ kiểm tra, liên hệ và bảo vệ dữ liệu nhạy cảm." />
-              <Step number="03" title="Kết nối" text="Câu chuyện được chia sẻ rõ ràng đến những tấm lòng đồng hành." />
+            <View style={[styles.steps, wideDesktop && styles.stepsWide]}>
+              {wideDesktop && <View style={styles.stepConnectorWide} />}
+              <Step number="01" icon="▤" title="Tiếp nhận" text="Thông tin được tiếp nhận từ cộng đồng và đối tác địa phương." decorated={wideDesktop} />
+              <Step number="02" icon="◇" title="Xác minh" text="Đội ngũ kiểm tra, liên hệ và bảo vệ dữ liệu nhạy cảm." decorated={wideDesktop} />
+              <Step number="03" icon="♧" title="Kết nối" text="Câu chuyện được chia sẻ rõ ràng đến những tấm lòng đồng hành." decorated={wideDesktop} />
             </View>
           </View>
         </View>
@@ -154,8 +167,8 @@ export default function HomeScreen() {
   );
 }
 
-function Step({ number, title, text }: { number: string; title: string; text: string }) {
-  return <View style={styles.step}><Text style={styles.stepNumber}>{number}</Text><View style={styles.stepContent}><Text style={styles.stepTitle}>{title}</Text><Text style={styles.stepText}>{text}</Text></View></View>;
+function Step({ number, title, text, icon, decorated = false }: { number: string; title: string; text: string; icon?: string; decorated?: boolean }) {
+  return <View style={[styles.step, decorated && styles.stepWide]}>{decorated && <View style={styles.stepIconWide}><Text style={styles.stepIconTextWide}>{icon}</Text></View>}<Text style={[styles.stepNumber, decorated && styles.stepNumberWide]}>{number}</Text><View style={styles.stepContent}><Text style={styles.stepTitle}>{title}</Text><Text style={styles.stepText}>{text}</Text></View></View>;
 }
 
 const styles = StyleSheet.create({
@@ -227,12 +240,23 @@ const styles = StyleSheet.create({
   outlineText: { color: Colors.coralDark, fontSize: 13, fontWeight: '800' },
   howSection: { marginTop: 70, backgroundColor: '#EAF7EF', borderRadius: 26, padding: 26, gap: 30, borderWidth: 1, borderColor: '#D6ECDE', overflow: 'hidden' },
   howDesktop: { flexDirection: 'row', alignItems: 'center', padding: 48, gap: 70 },
+  howDesktopWide: { minHeight: 300, paddingLeft: 74, paddingRight: 155, paddingVertical: 42, gap: 56, position: 'relative', backgroundColor: '#F8FBF7', borderColor: '#DDEEE3' },
+  howBackdropWide: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
   howIntro: { flex: 0.8, minWidth: 0, width: '100%' },
+  howIntroWide: { maxWidth: 370, position: 'relative' },
+  howEyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  howShield: { width: 23, height: 23, textAlign: 'center', color: Colors.primary, fontSize: 22, lineHeight: 23, fontWeight: '900' },
   howTitle: { color: Colors.ink, fontSize: 30, lineHeight: 38, fontWeight: '900', letterSpacing: -1 },
   howBody: { color: Colors.muted, fontSize: 14, lineHeight: 22, marginTop: 14 },
   steps: { width: '100%', flex: 1, minWidth: 0, gap: 19 },
+  stepsWide: { maxWidth: 520, gap: 14, position: 'relative' },
+  stepConnectorWide: { position: 'absolute', left: 22, top: 35, bottom: 35, width: 2, backgroundColor: '#B8DBC6' },
   step: { width: '100%', minWidth: 0, flexDirection: 'row', gap: 15, alignItems: 'flex-start' },
+  stepWide: { minHeight: 58, alignItems: 'center', gap: 13, position: 'relative' },
+  stepIconWide: { flexShrink: 0, width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primaryDark, borderWidth: 3, borderColor: '#E7F4EB' },
+  stepIconTextWide: { color: '#FFF', fontSize: 22, lineHeight: 25, fontWeight: '800' },
   stepNumber: { flexShrink: 0, color: Colors.coral, fontSize: 23, fontWeight: '900', width: 42 },
+  stepNumberWide: { color: Colors.primary, fontSize: 19, width: 34 },
   stepContent: { flex: 1, minWidth: 0 },
   stepTitle: { color: Colors.ink, fontSize: 15, fontWeight: '800' },
   stepText: { width: '100%', flexShrink: 1, color: Colors.muted, fontSize: 12, lineHeight: 18, marginTop: 3 },
