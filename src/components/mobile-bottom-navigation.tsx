@@ -1,6 +1,6 @@
 import { router, usePathname, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/fixed-text';
@@ -29,7 +29,9 @@ function isTabActive(name: TabName, pathname: string) {
 export function MobileBottomNavigation() {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
+  const desktopWeb = Platform.OS === 'web' && width >= 1100;
 
   useEffect(() => subscribeInAppNotifications(setNotifications), []);
 
@@ -41,30 +43,33 @@ export function MobileBottomNavigation() {
       style={[
         styles.shell,
         Platform.OS === 'web' && styles.webShell,
+        desktopWeb && styles.desktopShell,
         { paddingBottom: Math.max(insets.bottom, Platform.OS === 'web' ? 10 : 6) },
       ]}>
-      {tabs.map((tab) => {
-        const active = isTabActive(tab.name, pathname);
-        return (
-          <Pressable
-            key={tab.name}
-            accessibilityLabel={tab.label}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: active }}
-            onPress={() => router.replace(tab.href as Href)}
-            style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>
-            <View style={[styles.iconSurface, active && styles.iconSurfaceActive]}>
-              <TabIcon name={tab.name} active={active} />
-              {tab.name === 'notifications' && unreadCount > 0 && (
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
-                </View>
-              )}
-            </View>
-            <Text numberOfLines={1} style={[styles.label, active && styles.labelActive]}>{tab.label}</Text>
-          </Pressable>
-        );
-      })}
+      <View style={[styles.items, desktopWeb && styles.desktopItems]}>
+        {tabs.map((tab) => {
+          const active = isTabActive(tab.name, pathname);
+          return (
+            <Pressable
+              key={tab.name}
+              accessibilityLabel={tab.label}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: active }}
+              onPress={() => router.replace(tab.href as Href)}
+              style={({ pressed }) => [styles.item, desktopWeb && styles.desktopItem, pressed && styles.itemPressed]}>
+              <View style={[styles.iconSurface, desktopWeb && styles.desktopIconSurface, active && styles.iconSurfaceActive]}>
+                <TabIcon name={tab.name} active={active} />
+                {tab.name === 'notifications' && unreadCount > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+                  </View>
+                )}
+              </View>
+              <Text numberOfLines={1} style={[styles.label, desktopWeb && styles.desktopLabel, active && styles.labelActive]}>{tab.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
@@ -102,6 +107,19 @@ const styles = StyleSheet.create({
     zIndex: 50,
     flexShrink: 0,
   },
+  desktopShell: {
+    paddingTop: 10,
+    paddingHorizontal: 20,
+  },
+  items: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  desktopItems: {
+    maxWidth: 960,
+    alignSelf: 'center',
+  },
   item: {
     flex: 1,
     minWidth: 0,
@@ -110,6 +128,10 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   itemPressed: { opacity: 0.62 },
+  desktopItem: {
+    gap: 3,
+    minHeight: 58,
+  },
   iconSurface: {
     width: 40,
     height: 31,
@@ -118,7 +140,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconSurfaceActive: { backgroundColor: Colors.primarySoft },
+  desktopIconSurface: {
+    width: 54,
+    height: 36,
+    borderRadius: 19,
+  },
   label: { color: '#778B80', fontSize: 9, fontWeight: '800' },
+  desktopLabel: { fontSize: 12, fontWeight: '800' },
   labelActive: { color: Colors.primaryDark },
   icon: { width: 27, height: 25, alignItems: 'center', justifyContent: 'center' },
   homeRoof: {
