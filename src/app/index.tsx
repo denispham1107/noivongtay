@@ -42,6 +42,15 @@ export default function HomeScreen() {
       <PublicHeader />
       <KeyboardAwareScrollView contentContainerStyle={styles.page} showsVerticalScrollIndicator={false}>
         <View style={[styles.heroOuter, wideDesktop && styles.heroOuterWide]}>
+          {wideDesktop && (
+            <Image
+              source={require('../../assets/images/hero-community-seamless-desktop.png')}
+              style={styles.heroBackdropWide}
+              contentFit="fill"
+              transition={250}
+              alt="Cành lá và những bàn tay cùng nâng chiếc lá hình trái tim"
+            />
+          )}
           <View style={[styles.hero, desktop && styles.heroDesktop, wideDesktop && styles.heroDesktopWide]}>
             <View style={[styles.heroCopy, wideDesktop && styles.heroCopyWide]}>
               <View style={styles.eyebrow}><Text style={styles.eyebrowText}>♥  CÙNG NHAU TẠO NÊN THAY ĐỔI</Text></View>
@@ -59,7 +68,6 @@ export default function HomeScreen() {
             </View>
             {wideDesktop ? (
               <View style={styles.heroVisualWide}>
-                <Image source={require('../../assets/images/hero-community-desktop.png')} style={styles.heroVisualImage} contentFit="cover" transition={250} alt="Những bàn tay cùng nâng niu chiếc lá hình trái tim" />
                 {heroPhotos[0] && (
                   <View style={[styles.storyPhoto, styles.storyPhotoLeft]}>
                     <Image source={heroPhotos[0].url} style={styles.storyPhotoImage} contentFit="cover" alt={`Hoàn cảnh ${heroPhotos[0].name}`} />
@@ -154,10 +162,11 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.cream },
   page: { flexGrow: 1 },
   heroOuter: { backgroundColor: '#EAF7EF', borderBottomWidth: 1, borderBottomColor: '#D6ECDE' },
-  heroOuterWide: { backgroundColor: '#F8FBF7' },
+  heroOuterWide: { backgroundColor: '#FAFCF8', position: 'relative', overflow: 'hidden' },
+  heroBackdropWide: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, width: '100%', height: '100%' },
   hero: { maxWidth: 1180, width: '100%', alignSelf: 'center', paddingHorizontal: 20, paddingVertical: 55 },
   heroDesktop: { flexDirection: 'row', minHeight: 500, alignItems: 'center', gap: 70, paddingVertical: 70 },
-  heroDesktopWide: { maxWidth: 1440, minHeight: 520, gap: 36, paddingHorizontal: 32, paddingVertical: 44 },
+  heroDesktopWide: { maxWidth: 1440, minHeight: 520, gap: 36, paddingHorizontal: 32, paddingVertical: 44, position: 'relative' },
   heroCopy: { flex: 1, width: '100%', maxWidth: 650, minWidth: 0 },
   heroCopyWide: { flex: 0.92, maxWidth: 620, paddingLeft: 8 },
   eyebrow: { alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.72)', borderRadius: 20, paddingHorizontal: 13, paddingVertical: 8, marginBottom: 18 },
@@ -184,11 +193,10 @@ const styles = StyleSheet.create({
   people: { flexDirection: 'row', alignItems: 'center', paddingLeft: 3 },
   peopleDot: { width: 10, height: 10, borderRadius: 5, borderWidth: 2, borderColor: '#EAF7EF', marginLeft: -3 },
   peopleText: { color: Colors.muted, fontSize: 10 },
-  heroVisualWide: { flex: 1.08, minWidth: 0, height: 430, borderRadius: 38, overflow: 'hidden', position: 'relative', backgroundColor: '#E7F4E8', borderWidth: 1, borderColor: '#D9ECDD', shadowColor: '#25613D', shadowOpacity: 0.08, shadowRadius: 24, elevation: 2 },
-  heroVisualImage: { position: 'absolute', width: '100%', height: '100%' },
-  storyPhoto: { position: 'absolute', width: 132, height: 92, padding: 5, borderRadius: 18, backgroundColor: '#FFF', shadowColor: '#17472C', shadowOpacity: 0.18, shadowRadius: 16, elevation: 4 },
-  storyPhotoLeft: { left: 50, top: 24, transform: [{ rotate: '-4deg' }] },
-  storyPhotoRight: { right: 42, top: 52, transform: [{ rotate: '5deg' }] },
+  heroVisualWide: { flex: 1.08, minWidth: 0, height: 430, position: 'relative', overflow: 'visible' },
+  storyPhoto: { position: 'absolute', width: 142, height: 96, padding: 5, borderRadius: 18, backgroundColor: '#FFF', shadowColor: '#17472C', shadowOpacity: 0.18, shadowRadius: 16, elevation: 4 },
+  storyPhotoLeft: { left: 46, top: 18, transform: [{ rotate: '-4deg' }] },
+  storyPhotoRight: { right: 28, top: 64, transform: [{ rotate: '5deg' }] },
   storyPhotoImage: { width: '100%', height: '100%', borderRadius: 13 },
   quoteCardWide: { position: 'absolute', left: '19%', right: '19%', bottom: 54, minHeight: 82, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.95)', paddingHorizontal: 18, paddingVertical: 15, flexDirection: 'row', alignItems: 'flex-start', gap: 8, shadowColor: '#17472C', shadowOpacity: 0.1, shadowRadius: 14, elevation: 2 },
   quoteMark: { color: Colors.primary, fontSize: 28, lineHeight: 28, fontWeight: '900' },
