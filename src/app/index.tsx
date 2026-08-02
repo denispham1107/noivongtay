@@ -259,7 +259,7 @@ function DesktopProcessIcon({ type, color = '#FFFFFF' }: { type: ProcessIconType
 }
 
 function Step({ number, title, text, icon, decorated = false, mobileDecorated = false }: { number: string; title: string; text: string; icon?: ProcessIconType; decorated?: boolean; mobileDecorated?: boolean }) {
-  return <View style={[styles.step, decorated && styles.stepWide, mobileDecorated && styles.stepMobile]}>{decorated && icon && <View style={styles.stepIconWide}><View style={styles.stepIconDrawingWide}><DesktopProcessIcon type={icon} /></View></View>}{mobileDecorated && icon && <View style={styles.stepIconMobile}><MobileProcessIcon type={icon} /></View>}<Text style={[styles.stepNumber, decorated && styles.stepNumberWide, mobileDecorated && styles.stepNumberMobile]}>{number}</Text><View style={styles.stepContent}><Text style={[styles.stepTitle, mobileDecorated && styles.stepTitleMobile]}>{title}</Text><Text style={[styles.stepText, mobileDecorated && styles.stepTextMobile]}>{text}</Text></View></View>;
+  return <View style={[styles.step, decorated && styles.stepWide, mobileDecorated && styles.stepMobile]}>{decorated && icon && <View style={styles.stepIconWide}><View style={styles.stepIconDrawingWide}><DesktopProcessIcon type={icon} /></View></View>}{mobileDecorated && icon && <View style={styles.stepIconMobile}><MobileProcessIcon type={icon} /></View>}{!mobileDecorated && <Text style={[styles.stepNumber, decorated && styles.stepNumberWide]}>{number}</Text>}<View style={[styles.stepContent, mobileDecorated && styles.stepContentMobile]}><Text style={[styles.stepTitle, mobileDecorated && styles.stepTitleMobile]}>{title}</Text><Text style={[styles.stepText, mobileDecorated && styles.stepTextMobile]}>{text}</Text></View></View>;
 }
 
 const styles = StyleSheet.create({
@@ -369,21 +369,21 @@ const styles = StyleSheet.create({
   howBody: { color: Colors.muted, fontSize: 14, lineHeight: 22, marginTop: 14 },
   howBodyMobile: { maxWidth: 310, fontSize: 15, lineHeight: 23, marginTop: 18 },
   steps: { width: '100%', flex: 1, minWidth: 0, gap: 19 },
-  stepsMobile: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', gap: 25, position: 'relative', zIndex: 1, paddingTop: 2 },
+  stepsMobile: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', gap: 25, position: 'relative', zIndex: 1, paddingTop: 2, width: '100%' },
   stepConnectorMobile: { position: 'absolute', left: 28, top: 48, bottom: 48, width: 1.5, borderRadius: 2, backgroundColor: '#CDE4D4' },
   stepsWide: { maxWidth: 520, gap: 14, position: 'relative' },
   stepConnectorWide: { position: 'absolute', left: 22, top: 35, bottom: 35, width: 2, backgroundColor: '#B8DBC6' },
   step: { width: '100%', minWidth: 0, flexDirection: 'row', gap: 15, alignItems: 'flex-start' },
-  stepMobile: { minHeight: 83, alignItems: 'flex-start', gap: 10, position: 'relative' },
+  stepMobile: { minHeight: 83, alignItems: 'flex-start', gap: 16, position: 'relative', width: '100%', paddingRight: 2 },
   stepWide: { minHeight: 58, alignItems: 'center', gap: 13, position: 'relative' },
   stepIconMobile: { flexShrink: 0, width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.96)', shadowColor: '#17472C', shadowOpacity: 0.11, shadowRadius: 13, elevation: 3, zIndex: 1 },
   stepIconDrawingMobile: { width: 43, height: 43 },
   stepIconWide: { flexShrink: 0, width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primaryDark, borderWidth: 3, borderColor: '#E7F4EB' },
   stepIconDrawingWide: { width: 25, height: 25 },
   stepNumber: { flexShrink: 0, color: Colors.coral, fontSize: 23, fontWeight: '900', width: 42 },
-  stepNumberMobile: { width: 47, marginTop: 1, paddingVertical: 5, borderRadius: 18, overflow: 'hidden', backgroundColor: '#E6F4EA', color: Colors.primaryDark, fontSize: 17, lineHeight: 22, textAlign: 'center' },
   stepNumberWide: { color: Colors.primary, fontSize: 19, width: 34 },
   stepContent: { flex: 1, minWidth: 0 },
+  stepContentMobile: { flexShrink: 1, width: 0, paddingTop: 2 },
   stepTitle: { color: Colors.ink, fontSize: 15, fontWeight: '800' },
   stepTitleMobile: { fontSize: 18, lineHeight: 24, fontWeight: '900' },
   stepText: { width: '100%', flexShrink: 1, color: Colors.muted, fontSize: 12, lineHeight: 18, marginTop: 3 },
