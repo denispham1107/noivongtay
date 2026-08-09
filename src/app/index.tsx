@@ -50,6 +50,10 @@ export default function HomeScreen() {
   const wideDesktop = Platform.OS === 'web' && width >= 1100 && !webTabletLandscape;
   const tabletPortrait = width >= 600 && width < 1100 && height > width;
   const tabletLandscape = width >= 760 && width >= height && (Platform.OS !== 'web' || width < 1100 || webTabletLandscape);
+  const nativeTabletLandscape = Platform.OS !== 'web' && tabletLandscape;
+  const nativeLandscapeProcessHeight = Math.round(
+    Math.max(285, Math.min(320, (Math.min(width, 1180) - 40) / 3.7)),
+  );
   const tabletLayout = tabletPortrait || tabletLandscape;
   const phoneLayout = !desktop && !tabletPortrait;
   const featureWideLayout = wideDesktop || tabletLayout;
@@ -184,7 +188,22 @@ export default function HomeScreen() {
           {loading ? <Text style={styles.dataMessage}>Đang tải các hoàn cảnh…</Text> : error ? <Text style={styles.dataError}>Không thể tải dữ liệu: {error}</Text> : featured.length === 0 ? <Text style={styles.dataMessage}>Chưa có hoàn cảnh nào được xuất bản.</Text> : <View style={[styles.grid, !desktop && styles.gridMobile]}>{featured.map((item) => <CaseCard key={item.id} item={item} priorityOption={priorities.find((entry) => entry.name === item.priority)} />)}</View>}
           {!desktop && <Pressable style={styles.outlineButton} onPress={() => router.push('/explore')}><Text style={styles.outlineText}>Xem tất cả hoàn cảnh  →</Text></Pressable>}
 
-          <View style={[styles.howSection, phoneLayout && styles.howSectionMobile, desktop && styles.howDesktop, featureWideLayout && styles.howDesktopWide, tabletPortrait && styles.howTablet, tabletLandscape && styles.howTabletLandscape]}>
+          <View
+            style={[
+              styles.howSection,
+              phoneLayout && styles.howSectionMobile,
+              desktop && styles.howDesktop,
+              featureWideLayout && styles.howDesktopWide,
+              tabletPortrait && styles.howTablet,
+              tabletLandscape && styles.howTabletLandscape,
+              nativeTabletLandscape && styles.howNativeTabletLandscape,
+              nativeTabletLandscape && {
+                height: nativeLandscapeProcessHeight,
+                minHeight: nativeLandscapeProcessHeight,
+                maxHeight: nativeLandscapeProcessHeight,
+              },
+            ]}
+          >
             {phoneLayout && (
               <Image
                 source={require('../../assets/images/footer-mobile-botanical-v2.png')}
@@ -394,7 +413,8 @@ const styles = StyleSheet.create({
   howDesktopWide: { minHeight: 300, paddingLeft: 74, paddingRight: 155, paddingVertical: 42, gap: 56, position: 'relative', backgroundColor: '#F8FBF7', borderColor: '#DDEEE3' },
   howTablet: { flexDirection: 'row', minHeight: 245, paddingHorizontal: 25, paddingVertical: 24, gap: 22, alignItems: 'center', position: 'relative', backgroundColor: '#F8FBF7', borderColor: '#DDEEE3' },
   howTabletLandscape: { minHeight: 270, paddingLeft: 42, paddingRight: 72, paddingVertical: 31, gap: 34, alignItems: 'center' },
-  howBackdropWide: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
+  howNativeTabletLandscape: { paddingLeft: 42, paddingRight: 44, paddingVertical: 24, gap: 30 },
+  howBackdropWide: { ...StyleSheet.absoluteFillObject },
   howIntro: { flex: 0.8, minWidth: 0, width: '100%' },
   howIntroMobile: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', position: 'relative', zIndex: 1 },
   howIntroWide: { maxWidth: 370, position: 'relative' },
