@@ -1,9 +1,8 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { createElement } from 'react';
 import { Platform, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path, Rect } from 'react-native-svg';
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import { CaseCard } from '@/components/case-card';
 import { Text, TextInput } from '@/components/fixed-text';
@@ -239,26 +238,30 @@ function MobileProcessIcon({ type }: { type: ProcessIconType }) {
 
 function DesktopProcessIcon({ type, color = '#FFFFFF' }: { type: ProcessIconType; color?: string }) {
   const common = { fill: 'none', stroke: color, strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
-  const paths = type === 'document'
-    ? [
-        createElement('rect', { key: 'paper', x: 6.5, y: 3, width: 11, height: 18, rx: 1.7, ...common }),
-        createElement('path', { key: 'clip', d: 'M9 3h6v3H9z', ...common }),
-        createElement('path', { key: 'lines', d: 'M9 10h6M9 14h6M9 18h4.5', ...common }),
-      ]
-    : type === 'shield'
-      ? [
-          createElement('path', { key: 'shield', d: 'M12 2.8 19 5.7v5.2c0 4.5-2.6 7.5-7 9.8-4.4-2.3-7-5.3-7-9.8V5.7L12 2.8Z', ...common }),
-          createElement('path', { key: 'check', d: 'm8.7 11.8 2.1 2.1 4.5-4.7', ...common }),
-        ]
-      : [
-          createElement('circle', { key: 'head-main', cx: 12, cy: 7.2, r: 2.3, ...common }),
-          createElement('circle', { key: 'head-left', cx: 6.8, cy: 9, r: 1.7, ...common }),
-          createElement('circle', { key: 'head-right', cx: 17.2, cy: 9, r: 1.7, ...common }),
-          createElement('path', { key: 'body-main', d: 'M7.9 19v-2.2c0-2.5 1.7-4.1 4.1-4.1s4.1 1.6 4.1 4.1V19', ...common }),
-          createElement('path', { key: 'body-side', d: 'M3.8 18v-1.6c0-2 1.2-3.2 3-3.2.8 0 1.4.2 2 .6M20.2 18v-1.6c0-2-1.2-3.2-3-3.2-.8 0-1.4.2-2 .6', ...common }),
-        ];
-
-  return createElement('svg', { viewBox: '0 0 24 24', width: '100%', height: '100%', 'aria-hidden': true }, paths);
+  return (
+    <Svg width="100%" height="100%" viewBox="0 0 24 24" accessibilityElementsHidden>
+      {type === 'document' ? (
+        <>
+          <Rect x={6.5} y={3} width={11} height={18} rx={1.7} {...common} />
+          <Path d="M9 3h6v3H9z" {...common} />
+          <Path d="M9 10h6M9 14h6M9 18h4.5" {...common} />
+        </>
+      ) : type === 'shield' ? (
+        <>
+          <Path d="M12 2.8 19 5.7v5.2c0 4.5-2.6 7.5-7 9.8-4.4-2.3-7-5.3-7-9.8V5.7L12 2.8Z" {...common} />
+          <Path d="m8.7 11.8 2.1 2.1 4.5-4.7" {...common} />
+        </>
+      ) : (
+        <>
+          <Circle cx={12} cy={7.2} r={2.3} {...common} />
+          <Circle cx={6.8} cy={9} r={1.7} {...common} />
+          <Circle cx={17.2} cy={9} r={1.7} {...common} />
+          <Path d="M7.9 19v-2.2c0-2.5 1.7-4.1 4.1-4.1s4.1 1.6 4.1 4.1V19" {...common} />
+          <Path d="M3.8 18v-1.6c0-2 1.2-3.2 3-3.2.8 0 1.4.2 2 .6M20.2 18v-1.6c0-2-1.2-3.2-3-3.2-.8 0-1.4.2-2 .6" {...common} />
+        </>
+      )}
+    </Svg>
+  );
 }
 
 function Step({ number, title, text, icon, decorated = false, mobileDecorated = false }: { number: string; title: string; text: string; icon?: ProcessIconType; decorated?: boolean; mobileDecorated?: boolean }) {
