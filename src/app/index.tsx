@@ -41,11 +41,18 @@ function LockIcon() {
 
 export default function HomeScreen() {
   const { width, height } = useWindowDimensions();
+  const webUsesTouch = Platform.OS === 'web'
+    && typeof navigator !== 'undefined'
+    && (navigator.maxTouchPoints > 0
+      || (typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches));
+  const webTabletLandscape = webUsesTouch && width >= 760 && width <= 1400 && width >= height;
   const desktop = width >= 760;
-  const wideDesktop = Platform.OS === 'web' && width >= 1100;
+  const wideDesktop = Platform.OS === 'web' && width >= 1100 && !webTabletLandscape;
   const tabletPortrait = width >= 600 && width < 1100 && height > width;
+  const tabletLandscape = width >= 760 && width >= height && (Platform.OS !== 'web' || width < 1100 || webTabletLandscape);
+  const tabletLayout = tabletPortrait || tabletLandscape;
   const phoneLayout = !desktop && !tabletPortrait;
-  const featureWideLayout = wideDesktop || tabletPortrait;
+  const featureWideLayout = wideDesktop || tabletLayout;
   const { cases, loading, error } = usePublishedCases();
   const { categories: categoryOptions } = useCaseCategories();
   const { priorities } = useCasePriorities();
@@ -86,15 +93,15 @@ export default function HomeScreen() {
               alt="Cành lá và những bàn tay cùng nâng chiếc lá hình trái tim"
             />
           )}
-          <View style={[styles.hero, phoneLayout && styles.heroMobile, desktop && styles.heroDesktop, featureWideLayout && styles.heroDesktopWide, tabletPortrait && styles.heroTablet]}>
-            <View style={[styles.heroCopy, phoneLayout && styles.heroCopyMobile, featureWideLayout && styles.heroCopyWide, tabletPortrait && styles.heroCopyTablet]}>
-              <View style={[styles.eyebrow, phoneLayout && styles.eyebrowMobile, tabletPortrait && styles.eyebrowTablet]}><Text style={[styles.eyebrowText, phoneLayout && styles.eyebrowTextMobile, tabletPortrait && styles.eyebrowTextTablet]}>♥  CÙNG NHAU TẠO NÊN THAY ĐỔI</Text></View>
-              <Text style={[styles.heroTitle, phoneLayout && styles.heroTitleMobile, desktop && styles.heroTitleDesktop, featureWideLayout && styles.heroTitleWide, tabletPortrait && styles.heroTitleTablet]}>Một vòng tay mở ra,{`\n`}một hy vọng bắt đầu.</Text>
-              <Text style={[styles.heroBody, phoneLayout && styles.heroBodyMobile, tabletPortrait && styles.heroBodyTablet]}>Kết nối những hoàn cảnh đang cần giúp đỡ với những tấm lòng sẵn sàng sẻ chia — minh bạch, tử tế và đầy yêu thương.</Text>
-              <View style={[styles.search, phoneLayout && styles.searchMobile, tabletPortrait && styles.searchTablet]}>
+          <View style={[styles.hero, phoneLayout && styles.heroMobile, desktop && styles.heroDesktop, featureWideLayout && styles.heroDesktopWide, tabletPortrait && styles.heroTablet, tabletLandscape && styles.heroTabletLandscape]}>
+            <View style={[styles.heroCopy, phoneLayout && styles.heroCopyMobile, featureWideLayout && styles.heroCopyWide, tabletPortrait && styles.heroCopyTablet, tabletLandscape && styles.heroCopyTabletLandscape]}>
+              <View style={[styles.eyebrow, phoneLayout && styles.eyebrowMobile, tabletLayout && styles.eyebrowTablet]}><Text style={[styles.eyebrowText, phoneLayout && styles.eyebrowTextMobile, tabletLayout && styles.eyebrowTextTablet]}>♥  CÙNG NHAU TẠO NÊN THAY ĐỔI</Text></View>
+              <Text style={[styles.heroTitle, phoneLayout && styles.heroTitleMobile, desktop && styles.heroTitleDesktop, featureWideLayout && styles.heroTitleWide, tabletPortrait && styles.heroTitleTablet, tabletLandscape && styles.heroTitleTabletLandscape]}>Một vòng tay mở ra,{`\n`}một hy vọng bắt đầu.</Text>
+              <Text style={[styles.heroBody, phoneLayout && styles.heroBodyMobile, tabletPortrait && styles.heroBodyTablet, tabletLandscape && styles.heroBodyTabletLandscape]}>Kết nối những hoàn cảnh đang cần giúp đỡ với những tấm lòng sẵn sàng sẻ chia — minh bạch, tử tế và đầy yêu thương.</Text>
+              <View style={[styles.search, phoneLayout && styles.searchMobile, tabletLayout && styles.searchTablet, tabletLandscape && styles.searchTabletLandscape]}>
                 <View style={phoneLayout ? styles.searchIconCircleMobile : undefined}><Text style={[styles.searchIcon, phoneLayout && styles.searchIconMobile]}>⌕</Text></View>
-                <TextInput placeholder="Tìm theo tên, khu vực hoặc câu chuyện..." placeholderTextColor="#8C978F" style={[styles.searchInput, phoneLayout && styles.searchInputMobile, tabletPortrait && styles.searchInputTablet]} accessibilityLabel="Tìm kiếm hoàn cảnh" />
-                <Pressable style={[styles.searchButton, phoneLayout && styles.searchButtonMobile, tabletPortrait && styles.searchButtonTablet]} onPress={() => router.push('/explore')}><Text style={[styles.searchButtonText, phoneLayout && styles.searchButtonTextMobile]}>Tìm kiếm</Text></Pressable>
+                <TextInput placeholder="Tìm theo tên, khu vực hoặc câu chuyện..." placeholderTextColor="#8C978F" style={[styles.searchInput, phoneLayout && styles.searchInputMobile, tabletLayout && styles.searchInputTablet, tabletLandscape && styles.searchInputTabletLandscape]} accessibilityLabel="Tìm kiếm hoàn cảnh" />
+                <Pressable style={[styles.searchButton, phoneLayout && styles.searchButtonMobile, tabletLayout && styles.searchButtonTablet, tabletLandscape && styles.searchButtonTabletLandscape]} onPress={() => router.push('/explore')}><Text style={[styles.searchButtonText, phoneLayout && styles.searchButtonTextMobile]}>Tìm kiếm</Text></Pressable>
               </View>
               {phoneLayout ? (
                 <View style={[styles.trustRow, styles.trustRowMobile]}>
@@ -110,7 +117,7 @@ export default function HomeScreen() {
               )}
             </View>
             {featureWideLayout ? (
-              <View style={[styles.heroVisualWide, tabletPortrait && styles.heroVisualTablet]}>
+              <View style={[styles.heroVisualWide, tabletPortrait && styles.heroVisualTablet, tabletLandscape && styles.heroVisualTabletLandscape]}>
                 {heroPhotos[0] && (
                   <View style={[styles.storyPhoto, styles.storyPhotoLeft]}>
                     <Image source={heroPhotos[0].url} style={styles.storyPhotoImage} contentFit="cover" alt={`Hoàn cảnh ${heroPhotos[0].name}`} />
@@ -121,14 +128,14 @@ export default function HomeScreen() {
                     <Image source={heroPhotos[1].url} style={styles.storyPhotoImage} contentFit="cover" alt={`Hoàn cảnh ${heroPhotos[1].name}`} />
                   </View>
                 )}
-                <View style={[styles.quoteCardWide, tabletPortrait && styles.quoteCardTablet]}>
+                <View style={[styles.quoteCardWide, tabletPortrait && styles.quoteCardTablet, tabletLandscape && styles.quoteCardTabletLandscape]}>
                   <Text style={styles.quoteMark}>“</Text>
                   <View style={styles.quoteCopyWide}>
                     <Text style={styles.quoteWide}>“Sự tử tế, dù nhỏ bé, cũng chưa bao giờ là lãng phí.”</Text>
                     <Text style={styles.quoteAuthorWide}>— Aesop</Text>
                   </View>
                 </View>
-                <View style={[styles.communityRowWide, tabletPortrait && styles.communityRowTablet]}>
+                <View style={[styles.communityRowWide, tabletPortrait && styles.communityRowTablet, tabletLandscape && styles.communityRowTabletLandscape]}>
                   <View style={styles.avatarStack}>
                     {heroPhotos.map((photo) => <Image key={photo.id} source={photo.url} style={styles.communityAvatar} contentFit="cover" alt={photo.name} />)}
                     <View style={styles.communityAvatarFallback}><Text style={styles.communityAvatarHeart}>♥</Text></View>
@@ -177,7 +184,7 @@ export default function HomeScreen() {
           {loading ? <Text style={styles.dataMessage}>Đang tải các hoàn cảnh…</Text> : error ? <Text style={styles.dataError}>Không thể tải dữ liệu: {error}</Text> : featured.length === 0 ? <Text style={styles.dataMessage}>Chưa có hoàn cảnh nào được xuất bản.</Text> : <View style={[styles.grid, !desktop && styles.gridMobile]}>{featured.map((item) => <CaseCard key={item.id} item={item} priorityOption={priorities.find((entry) => entry.name === item.priority)} />)}</View>}
           {!desktop && <Pressable style={styles.outlineButton} onPress={() => router.push('/explore')}><Text style={styles.outlineText}>Xem tất cả hoàn cảnh  →</Text></Pressable>}
 
-          <View style={[styles.howSection, phoneLayout && styles.howSectionMobile, desktop && styles.howDesktop, featureWideLayout && styles.howDesktopWide, tabletPortrait && styles.howTablet]}>
+          <View style={[styles.howSection, phoneLayout && styles.howSectionMobile, desktop && styles.howDesktop, featureWideLayout && styles.howDesktopWide, tabletPortrait && styles.howTablet, tabletLandscape && styles.howTabletLandscape]}>
             {phoneLayout && (
               <Image
                 source={require('../../assets/images/footer-mobile-botanical-v2.png')}
@@ -198,16 +205,16 @@ export default function HomeScreen() {
                 alt="Cành lá và đôi bàn tay nâng trái tim"
               />
             )}
-            <View style={[styles.howIntro, phoneLayout && styles.howIntroMobile, featureWideLayout && styles.howIntroWide, tabletPortrait && styles.howIntroTablet]}>
+            <View style={[styles.howIntro, phoneLayout && styles.howIntroMobile, featureWideLayout && styles.howIntroWide, tabletPortrait && styles.howIntroTablet, tabletLandscape && styles.howIntroTabletLandscape]}>
               <View style={styles.howEyebrowRow}>
                 {featureWideLayout && <View style={styles.howShield}><DesktopProcessIcon type="shield" color={Colors.primary} /></View>}
                 <Text style={styles.sectionEyebrow}>MINH BẠCH TRONG TỪNG KẾT NỐI</Text>
               </View>
-              <Text style={[styles.howTitle, phoneLayout && styles.howTitleMobile, tabletPortrait && styles.howTitleTablet]}>Mỗi câu chuyện đều được nâng niu và xác minh.</Text>
+              <Text style={[styles.howTitle, phoneLayout && styles.howTitleMobile, tabletLayout && styles.howTitleTablet, tabletLandscape && styles.howTitleTabletLandscape]}>Mỗi câu chuyện đều được nâng niu và xác minh.</Text>
               {phoneLayout && <View style={styles.howAccentMobile} />}
-              <Text style={[styles.howBody, phoneLayout && styles.howBodyMobile, tabletPortrait && styles.howBodyTablet]}>Chúng tôi đặt sự tôn trọng, minh bạch và an toàn của người cần hỗ trợ lên hàng đầu.</Text>
+              <Text style={[styles.howBody, phoneLayout && styles.howBodyMobile, tabletLayout && styles.howBodyTablet, tabletLandscape && styles.howBodyTabletLandscape]}>Chúng tôi đặt sự tôn trọng, minh bạch và an toàn của người cần hỗ trợ lên hàng đầu.</Text>
             </View>
-            <View style={[styles.steps, phoneLayout && styles.stepsMobile, featureWideLayout && styles.stepsWide, tabletPortrait && styles.stepsTablet]}>
+            <View style={[styles.steps, phoneLayout && styles.stepsMobile, featureWideLayout && styles.stepsWide, tabletPortrait && styles.stepsTablet, tabletLandscape && styles.stepsTabletLandscape]}>
               {phoneLayout && <View style={styles.stepConnectorMobile} />}
               {featureWideLayout && <View style={styles.stepConnectorWide} />}
               <Step number="01" icon="document" title="Tiếp nhận" text="Thông tin được tiếp nhận từ cộng đồng và đối tác địa phương." decorated={featureWideLayout} mobileDecorated={phoneLayout} />
@@ -281,10 +288,12 @@ const styles = StyleSheet.create({
   heroDesktop: { flexDirection: 'row', minHeight: 500, alignItems: 'center', gap: 70, paddingVertical: 70 },
   heroDesktopWide: { maxWidth: 1440, minHeight: 520, gap: 36, paddingHorizontal: 32, paddingVertical: 44, position: 'relative' },
   heroTablet: { flexDirection: 'row', minHeight: 330, alignItems: 'center', gap: 14, paddingHorizontal: 24, paddingVertical: 26 },
+  heroTabletLandscape: { minHeight: 350, gap: 18, paddingHorizontal: 28, paddingVertical: 24 },
   heroCopy: { flex: 1, width: '100%', maxWidth: 650, minWidth: 0 },
   heroCopyMobile: { zIndex: 1, maxWidth: 520 },
   heroCopyWide: { flex: 0.92, maxWidth: 620, paddingLeft: 8 },
   heroCopyTablet: { flex: 0.94, maxWidth: '48%', paddingLeft: 0 },
+  heroCopyTabletLandscape: { flex: 0.9, maxWidth: '46%', paddingLeft: 0 },
   eyebrow: { alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.72)', borderRadius: 20, paddingHorizontal: 13, paddingVertical: 8, marginBottom: 18 },
   eyebrowMobile: { backgroundColor: 'rgba(255,255,255,0.9)', paddingHorizontal: 13, paddingVertical: 8, marginBottom: 24, shadowColor: '#17472C', shadowOpacity: 0.08, shadowRadius: 12, elevation: 1 },
   eyebrowText: { color: Colors.coralDark, fontSize: 11, fontWeight: '800', letterSpacing: 1 },
@@ -296,21 +305,26 @@ const styles = StyleSheet.create({
   heroTitleDesktop: { fontSize: 56, lineHeight: 64, letterSpacing: -2.4 },
   heroTitleWide: { fontSize: 54, lineHeight: 59, letterSpacing: -2.2 },
   heroTitleTablet: { fontSize: 30, lineHeight: 34, letterSpacing: -1.1 },
+  heroTitleTabletLandscape: { fontSize: 36, lineHeight: 40, letterSpacing: -1.45 },
   heroBody: { color: Colors.muted, fontSize: 16, lineHeight: 26, maxWidth: 590, marginTop: 20 },
   heroBodyMobile: { color: '#64756B', fontSize: 15, lineHeight: 22, maxWidth: 455, marginTop: 18 },
   heroBodyTablet: { fontSize: 11, lineHeight: 17, marginTop: 12, maxWidth: 350 },
+  heroBodyTabletLandscape: { fontSize: 12, lineHeight: 18, marginTop: 14, maxWidth: 410 },
   search: { marginTop: 28, backgroundColor: Colors.paper, borderRadius: 16, padding: 7, paddingLeft: 16, flexDirection: 'row', alignItems: 'center', gap: 10, shadowColor: '#16472C', shadowOpacity: 0.1, shadowRadius: 18, elevation: 2 },
   searchMobile: { marginTop: 35, flexWrap: 'nowrap', borderRadius: 17, padding: 7, paddingLeft: 9, gap: 7, shadowOpacity: 0.12, shadowRadius: 16 },
   searchTablet: { marginTop: 17, borderRadius: 12, padding: 5, paddingLeft: 10, gap: 6 },
+  searchTabletLandscape: { marginTop: 19, borderRadius: 13, padding: 5, paddingLeft: 11 },
   searchIcon: { fontSize: 23, color: Colors.muted },
   searchIconCircleMobile: { flexShrink: 0, width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E9F8EF' },
   searchIconMobile: { color: Colors.primaryDark, fontSize: 22, lineHeight: 24 },
   searchInput: { flex: 1, flexBasis: 180, minWidth: 0, color: Colors.ink, fontSize: 14, paddingVertical: 10, outlineStyle: 'none' } as any,
   searchInputMobile: { flexBasis: 0, fontSize: 14, paddingVertical: 9 },
   searchInputTablet: { flexBasis: 0, fontSize: 10, paddingVertical: 5 },
+  searchInputTabletLandscape: { fontSize: 11, paddingVertical: 6 },
   searchButton: { backgroundColor: Colors.coral, borderRadius: 12, paddingHorizontal: 22, paddingVertical: 14 },
   searchButtonMobile: { minHeight: 48, paddingHorizontal: 18, paddingVertical: 13, alignItems: 'center', justifyContent: 'center', shadowColor: '#16472C', shadowOpacity: 0.16, shadowRadius: 8, elevation: 2 },
   searchButtonTablet: { borderRadius: 9, paddingHorizontal: 14, paddingVertical: 10 },
+  searchButtonTabletLandscape: { paddingHorizontal: 18, paddingVertical: 11 },
   searchButtonText: { color: '#fff', fontSize: 13, fontWeight: '800' },
   searchButtonTextMobile: { fontSize: 13 },
   trustRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 18, marginTop: 16 },
@@ -337,18 +351,21 @@ const styles = StyleSheet.create({
   peopleText: { color: Colors.muted, fontSize: 10 },
   heroVisualWide: { flex: 1.08, minWidth: 0, height: 430, position: 'relative', overflow: 'visible' },
   heroVisualTablet: { flex: 1.06, height: 278, overflow: 'hidden' },
+  heroVisualTabletLandscape: { flex: 1.1, height: 310, overflow: 'hidden' },
   storyPhoto: { position: 'absolute', width: 142, height: 96, padding: 5, borderRadius: 18, backgroundColor: '#FFF', shadowColor: '#17472C', shadowOpacity: 0.18, shadowRadius: 16, elevation: 4 },
   storyPhotoLeft: { left: 46, top: 18, transform: [{ rotate: '-4deg' }] },
   storyPhotoRight: { right: 28, top: 64, transform: [{ rotate: '5deg' }] },
   storyPhotoImage: { width: '100%', height: '100%', borderRadius: 13 },
   quoteCardWide: { position: 'absolute', left: '19%', right: '19%', bottom: 54, minHeight: 82, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.95)', paddingHorizontal: 18, paddingVertical: 15, flexDirection: 'row', alignItems: 'flex-start', gap: 8, shadowColor: '#17472C', shadowOpacity: 0.1, shadowRadius: 14, elevation: 2 },
   quoteCardTablet: { left: '9%', right: '9%', bottom: 40, minHeight: 62, borderRadius: 13, paddingHorizontal: 11, paddingVertical: 10, gap: 5 },
+  quoteCardTabletLandscape: { left: '11%', right: '11%', bottom: 42, minHeight: 66, borderRadius: 14, paddingHorizontal: 13, paddingVertical: 11, gap: 6 },
   quoteMark: { color: Colors.primary, fontSize: 28, lineHeight: 28, fontWeight: '900' },
   quoteCopyWide: { flex: 1, minWidth: 0 },
   quoteWide: { color: Colors.ink, fontSize: 13, lineHeight: 18, fontWeight: '800' },
   quoteAuthorWide: { color: Colors.muted, fontSize: 10, marginTop: 4 },
   communityRowWide: { position: 'absolute', bottom: 14, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10 },
   communityRowTablet: { bottom: 8, gap: 6 },
+  communityRowTabletLandscape: { bottom: 9, gap: 7 },
   avatarStack: { flexDirection: 'row', alignItems: 'center', paddingLeft: 8 },
   communityAvatar: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#F8FBF7', marginLeft: -8, backgroundColor: '#DDECE3' },
   communityAvatarFallback: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#F8FBF7', marginLeft: -8, backgroundColor: Colors.pinkSoft, alignItems: 'center', justifyContent: 'center' },
@@ -376,25 +393,30 @@ const styles = StyleSheet.create({
   howDesktop: { flexDirection: 'row', alignItems: 'center', padding: 48, gap: 70 },
   howDesktopWide: { minHeight: 300, paddingLeft: 74, paddingRight: 155, paddingVertical: 42, gap: 56, position: 'relative', backgroundColor: '#F8FBF7', borderColor: '#DDEEE3' },
   howTablet: { flexDirection: 'row', minHeight: 245, paddingHorizontal: 25, paddingVertical: 24, gap: 22, alignItems: 'center', position: 'relative', backgroundColor: '#F8FBF7', borderColor: '#DDEEE3' },
+  howTabletLandscape: { minHeight: 270, paddingLeft: 42, paddingRight: 72, paddingVertical: 31, gap: 34, alignItems: 'center' },
   howBackdropWide: { position: 'absolute', left: 0, top: 0, right: 0, bottom: 0, width: '100%', height: '100%' },
   howIntro: { flex: 0.8, minWidth: 0, width: '100%' },
   howIntroMobile: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', position: 'relative', zIndex: 1 },
   howIntroWide: { maxWidth: 370, position: 'relative' },
   howIntroTablet: { flex: 0.8, maxWidth: '39%' },
+  howIntroTabletLandscape: { flex: 0.86, maxWidth: '40%' },
   howEyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   howShield: { width: 25, height: 25 },
   howTitle: { color: Colors.ink, fontSize: 30, lineHeight: 38, fontWeight: '900', letterSpacing: -1 },
   howTitleMobile: { maxWidth: 320, fontSize: 38, lineHeight: 46, letterSpacing: -1.5 },
   howTitleTablet: { fontSize: 22, lineHeight: 27, letterSpacing: -0.8 },
+  howTitleTabletLandscape: { fontSize: 27, lineHeight: 32, letterSpacing: -1 },
   howAccentMobile: { width: 42, height: 3, borderRadius: 3, backgroundColor: Colors.primary, marginTop: 18 },
   howBody: { color: Colors.muted, fontSize: 14, lineHeight: 22, marginTop: 14 },
   howBodyMobile: { maxWidth: 310, fontSize: 15, lineHeight: 23, marginTop: 18 },
   howBodyTablet: { fontSize: 10, lineHeight: 15, marginTop: 9 },
+  howBodyTabletLandscape: { fontSize: 11, lineHeight: 17, marginTop: 11, maxWidth: 370 },
   steps: { width: '100%', flex: 1, minWidth: 0, gap: 19 },
   stepsMobile: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', gap: 25, position: 'relative', zIndex: 1, paddingTop: 2, width: '100%' },
   stepConnectorMobile: { position: 'absolute', left: 28, top: 48, bottom: 48, width: 1.5, borderRadius: 2, backgroundColor: '#CDE4D4' },
   stepsWide: { maxWidth: 520, gap: 14, position: 'relative' },
   stepsTablet: { flex: 1.2, maxWidth: '57%', gap: 10 },
+  stepsTabletLandscape: { flex: 1.18, maxWidth: '55%', gap: 12 },
   stepConnectorWide: { position: 'absolute', left: 22, top: 35, bottom: 35, width: 2, backgroundColor: '#B8DBC6' },
   step: { width: '100%', minWidth: 0, flexDirection: 'row', gap: 15, alignItems: 'flex-start' },
   stepMobile: { minHeight: 83, alignItems: 'flex-start', gap: 16, position: 'relative', width: '100%', paddingRight: 2 },
